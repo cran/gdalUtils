@@ -1,0 +1,232 @@
+\name{gdalwarp}
+\alias{gdalwarp}
+\title{gdalwarp}
+\usage{
+gdalwarp(srcfile, dstfile, s_srs, t_srs, to, order, tps, rpc, geoloc, et,
+  refine_gcps, te, tr, tap, ts, wo, ot, wt, r, srcnodata, dstnodata, dstalpha,
+  wm, multi, q, of = "GTiff", co, cutline, cl, cwhere, csql, cblend,
+  crop_to_cutline, overwrite, nomd, cvmd, setci, additional_commands,
+  output_Raster = FALSE, verbose = FALSE)
+}
+\arguments{
+  \item{srcfile}{Character. The source file name(s).}
+
+  \item{dstfile}{Character. The destination file name.}
+
+  \item{s_srs}{Character. source spatial reference set. The
+  coordinate systems that can be passed are anything
+  supported by the OGRSpatialReference.SetFromUserInput()
+  call, which includes EPSG PCS and GCSes (ie. EPSG:4296),
+  PROJ.4 declarations (as above), or the name of a .prf
+  file containing well known text.}
+
+  \item{t_srs}{Character. target spatial reference set. The
+  coordinate systems that can be passed are anything
+  supported by the OGRSpatialReference.SetFromUserInput()
+  call, which includes EPSG PCS and GCSes (ie. EPSG:4296),
+  PROJ.4 declarations (as above), or the name of a .prf
+  file containing well known text.}
+
+  \item{to}{Character. set a transformer option suitable to
+  pass to GDALCreateGenImgProjTransformer2().}
+
+  \item{order}{Numeric. order of polynomial used for
+  warping (1 to 3). The default is to select a polynomial
+  order based on the number of GCPs.}
+
+  \item{tps}{Logical. Force use of thin plate spline
+  transformer based on available GCPs.}
+
+  \item{rpc}{Logical. Force use of RPCs.}
+
+  \item{geoloc}{Logical. Force use of Geolocation Arrays.}
+
+  \item{et}{Numeric. error threshold for transformation
+  approximation (in pixel units - defaults to 0.125).}
+
+  \item{refine_gcps}{Numeric. (GDAL >= 1.9.0) refines the
+  GCPs by automatically eliminating outliers. Outliers will
+  be eliminated until minimum_gcps are left or when no
+  outliers can be detected. The tolerance is passed to
+  adjust when a GCP will be eliminated. Note that GCP
+  refinement only works with polynomial interpolation. The
+  tolerance is in pixel units if no projection is
+  available, otherwise it is in SRS units. If minimum_gcps
+  is not provided, the minimum GCPs according to the
+  polynomial model is used.}
+
+  \item{te}{Numeric. (c(xmin,ymin,xmax,ymax)). set
+  georeferenced extents of output file to be created (in
+  target SRS).}
+
+  \item{tr}{Numeric. (c(xres,yres)). set output file
+  resolution (in target georeferenced units)}
+
+  \item{tap}{Logical. (GDAL >= 1.8.0) (target aligned
+  pixels) align the coordinates of the extent of the output
+  file to the values of the -tr, such that the aligned
+  extent includes the minimum extent.}
+
+  \item{ts}{Numeric. (c(width,height)). set output file
+  size in pixels and lines. If width or height is set to 0,
+  the other dimension will be guessed from the computed
+  resolution. Note that -ts cannot be used with -tr}
+
+  \item{wo}{Character. Set a warp options. The
+  GDALWarpOptions::papszWarpOptions docs show all options.
+  Multiple -wo options may be listed.}
+
+  \item{ot}{Character. For the output bands to be of the
+  indicated data type.}
+
+  \item{wt}{Character. Working pixel data type. The data
+  type of pixels in the source image and destination image
+  buffers.}
+
+  \item{r}{Character. resampling_method.
+  ("near"|"bilinear"|"cubic"|"cubicspline"|"lanczos"|"average"|"mode")
+  See Description.}
+
+  \item{srcnodata}{Character. Set nodata masking values for
+  input bands (different values can be supplied for each
+  band). If more than one value is supplied all values
+  should be quoted to keep them together as a single
+  operating system argument. Masked values will not be used
+  in interpolation. Use a value of None to ignore intrinsic
+  nodata settings on the source dataset.}
+
+  \item{dstnodata}{Character. Set nodata values for output
+  bands (different values can be supplied for each band).
+  If more than one value is supplied all values should be
+  quoted to keep them together as a single operating system
+  argument. New files will be initialized to this value and
+  if possible the nodata value will be recorded in the
+  output file. Use a value of None to ensure that nodata is
+  not defined (GDAL>=2.0). If this argument is not used
+  then nodata values will be copied from the source dataset
+  (GDAL>=2.0).}
+
+  \item{dstalpha}{Logical. Create an output alpha band to
+  identify nodata (unset/transparent) pixels.}
+
+  \item{wm}{Numeric. Set the amount of memory (in
+  megabytes) that the warp API is allowed to use for
+  caching.}
+
+  \item{multi}{Logical. Use multithreaded warping
+  implementation. Multiple threads will be used to process
+  chunks of image and perform input/output operation
+  simultaneously.}
+
+  \item{q}{Logical. Be quiet.}
+
+  \item{of}{Character. Select the output format. The
+  default is GeoTIFF (GTiff). Use the short format name.}
+
+  \item{co}{Character. passes a creation option to the
+  output format driver. Multiple -co options may be listed.
+  See format specific documentation for legal creation
+  options for each format.}
+
+  \item{cutline}{Character. Enable use of a blend cutline
+  from the name OGR support datasource.}
+
+  \item{cl}{Character. Select the named layer from the
+  cutline datasource.}
+
+  \item{cwhere}{Character. Restrict desired cutline
+  features based on attribute query.}
+
+  \item{csql}{Character. Select cutline features using an
+  SQL query instead of from a layer with -cl.}
+
+  \item{cblend}{Numeric. Set a blend distance to use to
+  blend over cutlines (in pixels).}
+
+  \item{crop_to_cutline}{Logical. (GDAL >= 1.8.0) Crop the
+  extent of the target dataset to the extent of the
+  cutline.}
+
+  \item{overwrite}{Logical. (GDAL >= 1.8.0) Overwrite the
+  target dataset if it already exists.}
+
+  \item{nomd}{Logical. (GDAL >= 1.10.0) Do not copy
+  metadata. Without this option, dataset and band metadata
+  (as well as some band information) will be copied from
+  the first source dataset. Items that differ between
+  source datasets will be set to * (see -cvmd option).}
+
+  \item{cvmd}{Character. (GDAL >= 1.10.0) Value to set
+  metadata items that conflict between source datasets
+  (default is "*"). Use "" to remove conflicting items.}
+
+  \item{setci}{Logical. (GDAL >= 1.10.0) Set the color
+  interpretation of the bands of the target dataset from
+  the source dataset.}
+
+  \item{additional_commands}{Character. Additional commands
+  to pass directly to gdalwarp.}
+
+  \item{output_Raster}{Logical. Return output dst_dataset
+  as a RasterBrick?}
+
+  \item{verbose}{Logical.}
+}
+\value{
+NULL or if(output_Raster), a RasterBrick.
+}
+\description{
+R wrapper for gdalwarp: image reprojection and warping
+utility
+}
+\details{
+This is an R wrapper for the 'gdalwarp' function that is
+part of the Geospatial Data Abstraction Library (GDAL).  It
+follows the parameter naming conventions of the original
+function, with some modifications to allow for more R-like
+parameters.  For all parameters, the user can use a single
+character string following, precisely, the gdalwarp format
+(\url{http://www.gdal.org/gdalwarp.html}), or, in some
+cases, can use R vectors to achieve the same end.
+
+This function assumes the user has a working GDAL on their
+system.  If the "gdalUtils_gdalPath" option has been set
+(usually by gdal_setInstallation), the GDAL found in that
+path will be used.  If nothing is found,
+gdal_setInstallation will be executed to attempt to find a
+working GDAL that has the right drivers as specified with
+the "of" (output format) parameter.
+
+The resampling_methods available are as follows: near:
+nearest neighbour resampling (default, fastest algorithm,
+worst interpolation quality). bilinear: bilinear
+resampling. cubic: cubic resampling. cubicspline: cubic
+spline resampling. lanczos: Lanczos windowed sinc
+resampling. average: average resampling, computes the
+average of all non-NODATA contributing pixels. (GDAL >=
+1.10.0) mode: mode resampling, selects the value which
+appears most often of all the sampled points. (GDAL >=
+1.10.0)
+
+The user can choose to (optionally) return a RasterBrick of
+the output file (assuming raster/rgdal supports the
+particular output format).
+}
+\examples{
+\dontrun{
+# Example from the original gdal_translate documentation:
+src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
+# Command-line gdalwarp call:
+# gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
+gdalwarp(src_dataset,dstfile="tahoe_highrez_utm11.tif",
+		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE)
+}
+}
+\author{
+Jonathan A. Greenberg (\email{gdalUtils@estarcion.net})
+(wrapper) and Frank Warmerdam (GDAL lead developer).
+}
+\references{
+\url{http://www.gdal.org/gdalwarp.html}
+}
+
