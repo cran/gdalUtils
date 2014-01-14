@@ -5,7 +5,7 @@
 gdalbuildvrt(gdalfile, output.vrt, tileindex, resolution, te, tr, tap, separate,
   b, sd, allow_projection_difference, q, addalpha, hidenodata, srcnodata,
   vrtnodata, a_srs, input_file_list, overwrite, additional_commands,
-  verbose = FALSE, ...)
+  ignore.full_scan = TRUE, verbose = FALSE, ...)
 }
 \arguments{
   \item{gdalfile}{Character. Input files (as a character
@@ -129,7 +129,12 @@ gdalbuildvrt(gdalfile, output.vrt, tileindex, resolution, te, tr, tap, separate,
   \item{additional_commands}{Character. Additional commands
   to pass directly to ogrinfo.}
 
-  \item{verbose}{Logical. Verbose execution?}
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 
   \item{...}{Other parameters to pass to gdal_translate.}
 }
@@ -155,11 +160,17 @@ gdal_setInstallation will be executed to attempt to find a
 working GDAL.
 }
 \examples{
-\dontrun{
+# We'll pre-check to make sure there is a valid GDAL install.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(valid_install)
+{
 layer1 <- system.file("external/tahoe_lidar_bareearth.tif", package="gdalUtils")
 layer2 <- system.file("external/tahoe_lidar_highesthit.tif", package="gdalUtils")
 output.vrt <- paste(tempfile(),".vrt",sep="")
-gdalbuildvrt(gdalfile=c(layer1,layer2),output.vrt=output.vrt,separate=TRUE)
+gdalbuildvrt(gdalfile=c(layer1,layer2),output.vrt=output.vrt,separate=TRUE,verbose=TRUE)
 gdalinfo(output.vrt)
 }
 }

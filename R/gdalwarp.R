@@ -41,7 +41,8 @@
 #' @param setci Logical. (GDAL >= 1.10.0) Set the color interpretation of the bands of the target dataset from the source dataset.
 #' @param additional_commands Character. Additional commands to pass directly to gdalwarp.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
-#' @param verbose Logical.
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @return NULL or if(output_Raster), a RasterBrick.
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
 #' @details This is an R wrapper for the 'gdalwarp' function that is part of the 
@@ -70,16 +71,23 @@
 #' raster/rgdal supports the particular output format).
 #'
 #' @references \url{http://www.gdal.org/gdalwarp.html}
-#' @examples \dontrun{ 
+#' @examples 
+#' # We'll pre-check to make sure there is a valid GDAL install
+#' # and that raster and rgdal are also installed.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(require(raster) && require(rgdal) && valid_install)
+#' {
 #' # Example from the original gdal_translate documentation:
 #' src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 #' # Command-line gdalwarp call:
 #' # gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
 #' gdalwarp(src_dataset,dstfile="tahoe_highrez_utm11.tif",
-#' 		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE)
+#' 		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE,
+#' 		overwrite=TRUE,verbose=TRUE)
 #' }
-#' @import rgdal
-#' @import raster
 #' @export
 
 gdalwarp <- function(
@@ -90,12 +98,21 @@ gdalwarp <- function(
 		dstalpha,wm,multi,q,of="GTiff",co,cutline,cl,cwhere,csql,cblend,crop_to_cutline,
 		overwrite,nomd,cvmd,setci,
 		additional_commands,
-		output_Raster=FALSE,verbose=FALSE)
+		output_Raster=FALSE,
+		ignore.full_scan=TRUE,
+		verbose=FALSE)
 {
+	if(output_Raster && (!require(raster) || !require(rgdal)))
+	{
+		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
+		return(NULL)
+	}
+	
 	parameter_values <- as.list(environment())
 	
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan,verbose=verbose)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	# Place all gdal function variables into these groupings:
 	parameter_variables <- list(
@@ -142,6 +159,8 @@ gdalwarp <- function(
 	
 	parameter_noflags <- c("srcfile","dstfile")
 	
+	parameter_noquotes <- unlist(parameter_variables$vector)
+	
 	executable <- "gdalwarp"
 	
 	cmd <- gdal_cmd_builder(
@@ -150,6 +169,7 @@ gdalwarp <- function(
 			parameter_values=parameter_values,
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
+			parameter_noquotes=parameter_noquotes,
 			gdal_installation_id=gdal_chooseInstallation(hasDrivers=of))
 	
 	if(verbose) message(paste("GDAL command being used:",cmd))

@@ -5,7 +5,7 @@
 gdal_translate(src_dataset, dst_dataset, ot, strict, of = "GTiff", b, mask,
   expand, outsize, scale, unscale, srcwin, projwin, epo, eco, a_srs, a_ullr,
   a_nodata, mo, co, gcp, q, sds, stats, additional_commands, sd_index,
-  output_Raster = FALSE, verbose = FALSE, ...)
+  output_Raster = FALSE, ignore.full_scan = TRUE, verbose = FALSE, ...)
 }
 \arguments{
   \item{src_dataset}{Character. The source dataset name. It
@@ -52,10 +52,11 @@ gdal_translate(src_dataset, dst_dataset, ot, strict, of = "GTiff", b, mask,
   a color table that only contains gray levels to a gray
   indexed dataset.}
 
-  \item{outsize}{Numeric. (c(xsize[%],ysize[%])). Set the
-  size of the output file. Outsize is in pixels and lines
-  unless '%' is attached in which case it is as a fraction
-  of the input image size.}
+  \item{outsize}{Numeric.
+  (c(xsize[percentage],ysize[percentage])). Set the size of
+  the output file. Outsize is in pixels and lines unless
+  '%' is attached in which case it is as a fraction of the
+  input image size.}
 
   \item{scale}{Numeric.
   (c(src_min,src_max,dst_min,dst_max)). Rescale the input
@@ -143,7 +144,12 @@ gdal_translate(src_dataset, dst_dataset, ot, strict, of = "GTiff", b, mask,
   \item{output_Raster}{Logical. Return output dst_dataset
   as a RasterBrick?}
 
-  \item{verbose}{Logical.}
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 
   \item{...}{Other parameters to pass to gdal_translate.}
 }
@@ -176,7 +182,14 @@ the output file (assuming raster/rgdal supports the
 particular output format).
 }
 \examples{
-\dontrun{
+# We'll pre-check to make sure there is a valid GDAL install
+# and that raster and rgdal are also installed.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(require(raster) && require(rgdal) && valid_install)
+{
 # Example from the original gdal_translate documentation:
 src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 # Original gdal_translate call:
@@ -188,6 +201,8 @@ srcwin=c(1,1,100,100),output_Raster=TRUE,verbose=TRUE)
 # Notice this is the equivalent, but follows gdal_translate's parameter format:
 gdal_translate(src_dataset,"tahoe_highrez_tiled.tif",of="GTiff",
 srcwin="1 1 100 100",output_Raster=TRUE,verbose=TRUE)
+}
+\dontrun{
 # Extract the first subdataset from an HDF4 file:
 hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
 gdal_translate(hdf4_dataset,"test_modis_sd1.tif",sd_index=1)

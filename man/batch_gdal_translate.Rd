@@ -23,7 +23,8 @@ batch_gdal_translate(infiles, outdir, outsuffix = "_conv.tif",
   \item{recursive}{Logical. If infiles is a directory,
   should files be searched for recursively?}
 
-  \item{verbose}{Logical. Enable verbose execution?}
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 
   \item{...}{Parameters to pass to
   \code{\link{gdal_translate}}}

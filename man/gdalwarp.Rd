@@ -6,7 +6,7 @@ gdalwarp(srcfile, dstfile, s_srs, t_srs, to, order, tps, rpc, geoloc, et,
   refine_gcps, te, tr, tap, ts, wo, ot, wt, r, srcnodata, dstnodata, dstalpha,
   wm, multi, q, of = "GTiff", co, cutline, cl, cwhere, csql, cblend,
   crop_to_cutline, overwrite, nomd, cvmd, setci, additional_commands,
-  output_Raster = FALSE, verbose = FALSE)
+  output_Raster = FALSE, ignore.full_scan = TRUE, verbose = FALSE)
 }
 \arguments{
   \item{srcfile}{Character. The source file name(s).}
@@ -170,7 +170,12 @@ gdalwarp(srcfile, dstfile, s_srs, t_srs, to, order, tps, rpc, geoloc, et,
   \item{output_Raster}{Logical. Return output dst_dataset
   as a RasterBrick?}
 
-  \item{verbose}{Logical.}
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 }
 \value{
 NULL or if(output_Raster), a RasterBrick.
@@ -213,13 +218,21 @@ the output file (assuming raster/rgdal supports the
 particular output format).
 }
 \examples{
-\dontrun{
+# We'll pre-check to make sure there is a valid GDAL install
+# and that raster and rgdal are also installed.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(require(raster) && require(rgdal) && valid_install)
+{
 # Example from the original gdal_translate documentation:
 src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 # Command-line gdalwarp call:
 # gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
 gdalwarp(src_dataset,dstfile="tahoe_highrez_utm11.tif",
-		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE)
+		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE,
+		overwrite=TRUE,verbose=TRUE)
 }
 }
 \author{

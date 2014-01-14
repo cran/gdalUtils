@@ -4,7 +4,7 @@
 \usage{
 ogrinfo(datasource_name, layer, ro, q, where, spat, geomfield, fid, sql,
   dialect, al, so, fields, geom, formats, additional_commands,
-  verbose = FALSE)
+  ignore.full_scan = TRUE, verbose = FALSE)
 }
 \arguments{
   \item{datasource_name}{Character. The data source to
@@ -75,7 +75,12 @@ ogrinfo(datasource_name, layer, ro, q, where, spat, geomfield, fid, sql,
   \item{additional_commands}{Character. Additional commands
   to pass directly to ogrinfo.}
 
-  \item{verbose}{Logical.}
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 }
 \value{
 character
@@ -102,7 +107,13 @@ gdal_setInstallation will be executed to attempt to find a
 working GDAL.
 }
 \examples{
-\dontrun{
+# We'll pre-check to make sure there is a valid GDAL install.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(valid_install)
+{
 datasource_name <- system.file("external/tahoe_highrez_training.shp", package="gdalUtils")
 # Display all available formats:
 # Command-line ogrinfo call:

@@ -4,7 +4,8 @@
 #' 
 #' @param datasetname Character. Input HDF4/5 or NetCDF file.
 #' @param names_only Logical. Return subdataset names only?  Default=TRUE.
-#' 
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
+
 #' @return character vector of subdataset names that can be used in gdal_translate.
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) and Matteo Mattiuzzi (wrapper) and Frank Warmerdam (GDAL lead developer).
 #' @details Currently, this only returns the subdataset names of HDF4, HDF5, and NetCDF files,
@@ -18,14 +19,19 @@
 #'
 #' @references \url{http://www.gdal.org/gdalinfo.html}
 #' 
-#' @examples \dontrun{ 
+#' @examples 
+#' \dontrun{ 
 #' hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
 #' get_subdatasets(hdf4_dataset)
 #' }
 #' @export
 
-get_subdatasets <- function(datasetname,names_only=TRUE)
+get_subdatasets <- function(datasetname,names_only=TRUE,verbose=FALSE)
 {
+	if(verbose) message("Checking gdal_installation...")
+	gdal_setInstallation()
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
+	
 	if(names_only)
 	{
 		gdalinfo_raw <- gdalinfo(datasetname)

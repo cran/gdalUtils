@@ -7,7 +7,7 @@
 #' @param outsuffix Character. The suffix to append to the input filename (minus its extension) to generate the output filename(s).
 #' @param pattern Character. If infiles is a directory, this is used to limit the file it is searching for.
 #' @param recursive Logical. If infiles is a directory, should files be searched for recursively?
-#' @param verbose Logical. Enable verbose execution?
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @param ... Parameters to pass to \code{\link{gdal_translate}}
 #' 
 #' @return Either a list of NULLs or a list of RasterBricks depending on whether output_Raster is set to TRUE.
@@ -47,6 +47,10 @@ batch_gdal_translate <- function(infiles,outdir,outsuffix="_conv.tif",pattern=NU
 		...)
 
 {
+	if(verbose) message("Checking gdal_installation...")
+	gdal_setInstallation()
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
+	
 	# These are just to avoid errors in CRAN checks.
 	infile <- NULL
 	outfile <- NULL

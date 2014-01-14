@@ -24,7 +24,8 @@
 #' @param debug Character. Control what debugging messages are emitted. A value of ON will enable all debug messages. A value of OFF will disable all debug messages. Another value will select only debug messages containing that string in the debug prefix code.
 #' @param additional_commands Character. Additional commands to pass directly to gdalinfo.
 #' @param raw_output Logical. Dump the raw output of the gdalinfo (default=TRUE). If not, attempt to return a clean list (not all parameters will be retained, at present). 
-#' @param verbose Logical.
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' 
 #' @return character (if raw_output=TRUE) or list (if raw_output=FALSE).
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) and Matteo Mattiuzzi (wrapper) and Frank Warmerdam (GDAL lead developer).
@@ -46,11 +47,18 @@
 #'
 #' @references \url{http://www.gdal.org/gdalinfo.html}
 #' 
-#' @examples \dontrun{ 
+#' @examples 
+#' # We'll pre-check to make sure there is a valid GDAL install.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(valid_install)
+#' {
 #' src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 #' # Command-line gdalinfo call:
 #' # gdalinfo tahoe_highrez.tif
-#' gdalinfo(src_dataset)
+#' gdalinfo(src_dataset,verbose=TRUE)
 #' }
 #' @export
 
@@ -59,12 +67,15 @@ gdalinfo <- function(datasetname,mm,stats,
 	proj4,mdd,sd,
 	version,formats,format,optfile,config,debug,
 	additional_commands,
-	raw_output=TRUE,verbose=FALSE)
+	raw_output=TRUE,
+	ignore.full_scan=TRUE,
+	verbose=FALSE)
 {
 	parameter_values <- as.list(environment())
 
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan,verbose=verbose)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	# Start gdalinfo setup
 	parameter_variables <- list(

@@ -10,7 +10,7 @@
 #' @param b Numeric or Character. Select an input band band for output. Bands are numbered from 1. Multiple bands may be used to select a set of input bands to write to the output file, or to reorder bands. Starting with GDAL 1.8.0, band can also be set to "mask,1" (or just "mask") to mean the mask band of the first band of the input dataset.
 #' @param mask Numeric. (GDAL >= 1.8.0) Select an input band band to create output dataset mask band. Bands are numbered from 1. band can be set to "none" to avoid copying the global mask of the input dataset if it exists. Otherwise it is copied by default ("auto"), unless the mask is an alpha channel, or if it is explicitly used to be a regular band of the output dataset ("-b mask"). band can also be set to "mask,1" (or just "mask") to mean the mask band of the 1st band of the input dataset.
 #' @param expand Character. ("gray"|"rgb"|"rgba").  (From GDAL 1.6.0) To expose a dataset with 1 band with a color table as a dataset with 3 (RGB) or 4 (RGBA) bands. Useful for output drivers such as JPEG, JPEG2000, MrSID, ECW that don't support color indexed datasets. The 'gray' value (from GDAL 1.7.0) enables to expand a dataset with a color table that only contains gray levels to a gray indexed dataset.
-#' @param outsize Numeric. (c(xsize[%],ysize[%])). Set the size of the output file. Outsize is in pixels and lines unless '%' is attached in which case it is as a fraction of the input image size.
+#' @param outsize Numeric. (c(xsize[percentage],ysize[percentage])). Set the size of the output file. Outsize is in pixels and lines unless '%' is attached in which case it is as a fraction of the input image size.
 #' @param scale Numeric. (c(src_min,src_max,dst_min,dst_max)). Rescale the input pixels values from the range src_min to src_max to the range dst_min to dst_max. If omitted the output range is 0 to 255. If omitted the input range is automatically computed from the source data.
 #' @param unscale Logical. Apply the scale/offset metadata for the bands to convert scaled values to unscaled values. It is also often necessary to reset the output datatype with the -ot switch.
 #' @param srcwin Numeric. (c(xoff,yoff,xsize,ysize)).  Selects a subwindow from the source image for copying based on pixel/line location.
@@ -29,7 +29,8 @@
 #' @param additional_commands Character. Additional commands to pass directly to gdal_translate.
 #' @param sd_index Numeric. If the file is an HDF4 or HDF5 file, which subdataset should be returned (1 to the number of subdatasets)?  If this flag is used, src_dataset should be the filename of the multipart file.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
-#' @param verbose Logical.
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @param ... Other parameters to pass to gdal_translate.
 #' @return NULL or if(output_Raster), a RasterBrick.
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
@@ -50,7 +51,15 @@
 #' raster/rgdal supports the particular output format).
 #'
 #' @references \url{http://www.gdal.org/gdal_translate.html}
-#' @examples \dontrun{ 
+#' @examples
+#' # We'll pre-check to make sure there is a valid GDAL install
+#' # and that raster and rgdal are also installed.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(require(raster) && require(rgdal) && valid_install)
+#' {
 #' # Example from the original gdal_translate documentation:
 #' src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 #' # Original gdal_translate call:
@@ -62,12 +71,12 @@
 #' # Notice this is the equivalent, but follows gdal_translate's parameter format:
 #' gdal_translate(src_dataset,"tahoe_highrez_tiled.tif",of="GTiff",
 #' srcwin="1 1 100 100",output_Raster=TRUE,verbose=TRUE)
+#' }
+#' \dontrun{ 
 #' # Extract the first subdataset from an HDF4 file:
 #' hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
 #' gdal_translate(hdf4_dataset,"test_modis_sd1.tif",sd_index=1)
 #' }
-#' @import rgdal
-#' @import raster
 #' @export
 
 # TODO: return all subdatasets if sds=TRUE as a list of bricks
@@ -81,13 +90,22 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 		a_srs,a_ullr,a_nodata,mo,co,gcp,q,sds,stats,
 		additional_commands,
 		sd_index,
-		output_Raster=FALSE,verbose=FALSE,
+		output_Raster=FALSE,
+		ignore.full_scan=TRUE,
+		verbose=FALSE,
 		...)
 {
+	if(output_Raster && (!require(raster) || !require(rgdal)))
+	{
+		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
+		return(NULL)
+	}
+	
 	parameter_values <- as.list(environment())
 	
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan,verbose=verbose)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	if(!missing(sd_index))
 	{
@@ -116,6 +134,8 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 	
 	parameter_noflags <- c("src_dataset","dst_dataset")
 	
+	parameter_noquotes <- unlist(parameter_variables$vector)
+		
 	executable <- "gdal_translate"
 	
 	cmd <- gdal_cmd_builder(
@@ -124,6 +144,7 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 			parameter_values=parameter_values,
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
+			parameter_noquotes=parameter_noquotes,
 			gdal_installation_id=gdal_chooseInstallation(hasDrivers=of))
 	
 	if(verbose) message(paste("GDAL command being used:",cmd))

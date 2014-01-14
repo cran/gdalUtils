@@ -3,7 +3,7 @@
 \title{gdaladdo}
 \usage{
 gdaladdo(filename, levels, r, b, ro, clean, additional_commands,
-  verbose = FALSE, ...)
+  ignore.full_scan = TRUE, verbose = FALSE, ...)
 }
 \arguments{
   \item{filename}{Character. The file to build overviews
@@ -31,7 +31,12 @@ gdaladdo(filename, levels, r, b, ro, clean, additional_commands,
   \item{additional_commands}{Character. Additional commands
   to pass directly to gdaladdo.}
 
-  \item{verbose}{Logical. Verbose execution?}
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 
   \item{...}{Other parameters to pass to gdaladdo.}
 }
@@ -56,7 +61,13 @@ gdal_setInstallation will be executed to attempt to find a
 working GDAL.
 }
 \examples{
-\dontrun{
+# We'll pre-check to make sure there is a valid GDAL install.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(valid_install)
+{
 filename  <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 temp_filename <- paste(tempfile(),".tif",sep="")
 file.copy(from=filename,to=temp_filename,overwrite=TRUE)

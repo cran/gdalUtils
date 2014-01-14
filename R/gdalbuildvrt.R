@@ -22,7 +22,8 @@
 #' @param input_file_list Character. To specify a text file with an input filename on each line.
 #' @param overwrite Logical. Overwrite the VRT if it already exists.
 #' @param additional_commands Character. Additional commands to pass directly to ogrinfo.
-#' @param verbose Logical. Verbose execution?
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @param ... Other parameters to pass to gdal_translate.
 #' 
 #' @return NULL
@@ -41,11 +42,18 @@
 #'
 #' @references \url{http://www.gdal.org/gdalbuildvrt.html}
 #' 
-#' @examples \dontrun{ 
+#' @examples 
+#' # We'll pre-check to make sure there is a valid GDAL install.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(valid_install)
+#' {
 #' layer1 <- system.file("external/tahoe_lidar_bareearth.tif", package="gdalUtils")
 #' layer2 <- system.file("external/tahoe_lidar_highesthit.tif", package="gdalUtils")
 #' output.vrt <- paste(tempfile(),".vrt",sep="")
-#' gdalbuildvrt(gdalfile=c(layer1,layer2),output.vrt=output.vrt,separate=TRUE)
+#' gdalbuildvrt(gdalfile=c(layer1,layer2),output.vrt=output.vrt,separate=TRUE,verbose=TRUE)
 #' gdalinfo(output.vrt)
 #' }
 #' @export
@@ -56,6 +64,7 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 		addalpha,hidenodata,srcnodata,vrtnodata,
 		a_srs,input_file_list,overwrite,
 		additional_commands,
+		ignore.full_scan=TRUE,
 		verbose=FALSE,
 		...)
 {
@@ -63,7 +72,8 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 	parameter_values <- as.list(environment())
 	
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan,verbose=verbose)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	# Start gdalinfo setup
 	parameter_variables <- list(
@@ -94,6 +104,8 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 	
 	parameter_doubledash <- NULL
 	
+	parameter_noquotes <- unlist(parameter_variables$vector)
+	
 	executable <- "gdalbuildvrt"
 	# End gdalinfo setup
 	
@@ -103,6 +115,7 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 			parameter_values=parameter_values,
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
+			parameter_noquotes=parameter_noquotes,
 			parameter_doubledash=parameter_doubledash)
 	
 	if(verbose) message(paste("GDAL command being used:",cmd))

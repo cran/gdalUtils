@@ -4,7 +4,8 @@
 \usage{
 gdal_rasterize(src_datasource, dst_filename, b, i, at, burn, a, threeD, l,
   where, sql, of, a_srs, co, a_nodata, init, te, tr, tap, ts, ot, q,
-  additional_commands, output_Raster = FALSE, verbose = FALSE)
+  additional_commands, output_Raster = FALSE, ignore.full_scan = TRUE,
+  verbose = FALSE)
 }
 \arguments{
   \item{src_datasource}{Character. Any OGR supported
@@ -115,7 +116,12 @@ gdal_rasterize(src_datasource, dst_filename, b, i, at, burn, a, threeD, l,
   \item{output_Raster}{Logical. Return output dst_filename
   as a RasterBrick?}
 
-  \item{verbose}{Logical.}
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 }
 \value{
 NULL or if(output_Raster), a RasterBrick.
@@ -147,8 +153,15 @@ the output file (assuming raster/rgdal supports the
 particular output format).
 }
 \examples{
-\dontrun{
-# Example from the original gdal_translate documentation:
+# We'll pre-check to make sure there is a valid GDAL install
+# and that raster and rgdal are also installed.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(require(raster) && require(rgdal) && valid_install)
+{
+# Example from the original gdal_rasterize documentation:
 # gdal_rasterize -b 1 -b 2 -b 3 -burn 255 -burn 0
 # 	-burn 0 -l tahoe_highrez_training tahoe_highrez_training.shp tempfile.tif
 dst_filename_original  <- system.file("external/tahoe_highrez.tif", package="gdalUtils")

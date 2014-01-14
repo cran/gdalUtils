@@ -26,7 +26,8 @@
 #' @param q Logical. (GDAL >= 1.8.0) Suppress progress monitor and other non-error output.
 #' @param additional_commands Character. Additional commands to pass directly to gdal_rasterize.
 #' @param output_Raster Logical. Return output dst_filename as a RasterBrick?
-#' @param verbose Logical.
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @return NULL or if(output_Raster), a RasterBrick.
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
 #' @details This is an R wrapper for the 'gdal_rasterize' function that is part of the 
@@ -46,8 +47,16 @@
 #' raster/rgdal supports the particular output format).
 #'
 #' @references \url{http://www.gdal.org/gdal_rasterize.html}
-#' @examples \dontrun{ 
-#' # Example from the original gdal_translate documentation:
+#' @examples 
+#' # We'll pre-check to make sure there is a valid GDAL install
+#' # and that raster and rgdal are also installed.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(require(raster) && require(rgdal) && valid_install)
+#' {
+#' # Example from the original gdal_rasterize documentation:
 #' # gdal_rasterize -b 1 -b 2 -b 3 -burn 255 -burn 0 
 #' # 	-burn 0 -l tahoe_highrez_training tahoe_highrez_training.shp tempfile.tif
 #' dst_filename_original  <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
@@ -62,8 +71,6 @@
 #' #After plot:
 #' plotRGB(brick(dst_filename))
 #' }
-#' @import rgdal
-#' @import raster
 #' @export
 
 gdal_rasterize <- function(
@@ -72,12 +79,21 @@ gdal_rasterize <- function(
 		of,a_srs,co,a_nodata,init,
 		te,tr,tap,ts,ot,q,
 		additional_commands,
-		output_Raster=FALSE,verbose=FALSE)
+		output_Raster=FALSE,
+		ignore.full_scan=TRUE,
+		verbose=FALSE)
 {
+	if(output_Raster && (!require(raster) || !require(rgdal)))
+	{
+		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
+		return(NULL)
+	}
+	
 	parameter_values <- as.list(environment())
 	
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	# Place all gdal function variables into these groupings:
 	parameter_variables <- list(
@@ -114,6 +130,8 @@ gdal_rasterize <- function(
 	
 	parameter_noflags <- c("src_datasource","dst_filename")
 	
+	parameter_noquotes <- unlist(parameter_variables$vector)
+	
 	executable <- "gdal_rasterize"
 	
 	cmd <- gdal_cmd_builder(
@@ -122,6 +140,7 @@ gdal_rasterize <- function(
 			parameter_values=parameter_values,
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
+			parameter_noquotes=parameter_noquotes,
 			gdal_installation_id=gdal_chooseInstallation(hasDrivers=of))
 	
 	if(verbose) message(paste("GDAL command being used:",cmd))

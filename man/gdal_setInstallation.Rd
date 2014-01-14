@@ -2,11 +2,26 @@
 \alias{gdal_setInstallation}
 \title{gdal_setInstallation}
 \usage{
-gdal_setInstallation(rescan = FALSE)
+gdal_setInstallation(search_path = NULL, rescan = FALSE,
+  ignore.full_scan = TRUE, verbose = FALSE)
 }
 \arguments{
+  \item{search_path}{Character. Force a search in a
+  specified directory.  This directory should contain the
+  gdalinfo(.exe) executable.  If a valid GDAL install is
+  found in this path, this will force gdalUtils to use this
+  installation.  Remember to set rescan=TRUE if you have
+  already set an install.}
+
   \item{rescan}{Logical. Force a rescan if neccessary (e.g.
   if you updated your GDAL install).}
+
+  \item{ignore.full_scan}{Logical. If FALSE, perform a
+  brute-force scan if other installs are not found.
+  Default is TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 }
 \value{
 Sets an option "gdalUtils_gdalPath" with GDAL installation
@@ -26,6 +41,23 @@ the one that is used by the various GDAL utilities. Note
 that this will automatically run every time a GDAL wrapper
 function is called, so the user does not have to explicitly
 run it.
+
+gdal_setInstallation is designed to invoke consecutively
+more rigorous searches in able to find a valid GDAL
+install.  Understanding the search routine may help debug
+problems on your system.  The order of the searches is as
+follows, noting that as soon as a valid install is found
+(determined by running gdalinfo --version and getting the
+correct output), gdal_setInstallation stops further
+searching: \enumerate{ \item Checks a pre-determined
+location given by the search_path parameter. \item Checks
+using Sys.which().  This is typically defined in the
+system's PATH, so will override any other install. \item
+Checks in common install locations (OS specific). \item
+(optional, if ignore.full_scan=FALSE) Finally, if it can't
+find a valid GDAL install anywhere else, it will
+brute-force search the entire local system (which may take
+a long time). }
 }
 \examples{
 \dontrun{

@@ -9,7 +9,8 @@
 #' @param ro Logical. (available from GDAL 1.6.0) open the dataset in read-only mode, in order to generate external overview (for GeoTIFF especially).
 #' @param clean Logical. (available from GDAL 1.7.0) remove all overviews.
 #' @param additional_commands Character. Additional commands to pass directly to gdaladdo.
-#' @param verbose Logical. Verbose execution?
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @param ... Other parameters to pass to gdaladdo.
 #' 
 #' @return NULL
@@ -28,7 +29,14 @@
 #'
 #' @references \url{http://www.gdal.org/gdaladdo.html}
 #' 
-#' @examples \dontrun{ 
+#' @examples 
+#' # We'll pre-check to make sure there is a valid GDAL install.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(valid_install)
+#' {
 #' filename  <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 #' temp_filename <- paste(tempfile(),".tif",sep="")
 #' file.copy(from=filename,to=temp_filename,overwrite=TRUE)
@@ -41,6 +49,7 @@
 gdaladdo <- function(filename,levels,
 		r,b,ro,clean,
 		additional_commands,
+		ignore.full_scan=TRUE,
 		verbose=FALSE,
 		...)
 {
@@ -48,7 +57,8 @@ gdaladdo <- function(filename,levels,
 	parameter_values <- as.list(environment())
 	
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan,verbose=verbose)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	# Start gdalinfo setup
 	parameter_variables <- list(
@@ -71,7 +81,7 @@ gdaladdo <- function(filename,levels,
 	
 	parameter_doubledash <- NULL
 	
-	parameter_noquotes <- c("levels")
+	parameter_noquotes <- unlist(parameter_variables$vector)
 	
 	executable <- "gdaladdo"
 	# End gdalinfo setup

@@ -3,7 +3,7 @@
 \title{Mosaic raster files using GDAL Utilities}
 \usage{
 mosaic_rasters(gdalfile, dst_dataset, output.vrt = NULL,
-  output_Raster = FALSE, ...)
+  output_Raster = FALSE, verbose = FALSE, ...)
 }
 \arguments{
   \item{gdalfile}{Character. Input files (as a character
@@ -20,6 +20,9 @@ mosaic_rasters(gdalfile, dst_dataset, output.vrt = NULL,
   \item{...}{Parameters to pass to
   \code{\link{gdalbuildvrt}} and
   \code{\link{gdal_translate}}.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 }
 \value{
 Either a list of NULLs or a list of RasterBricks depending
@@ -38,7 +41,14 @@ preserve the intermediate output.vrt file, but in general
 this is not needed.
 }
 \examples{
-\dontrun{
+# We'll pre-check to make sure there is a valid GDAL install
+# and that raster and rgdal are also installed.
+# Note this isn't strictly neccessary, as executing the function will
+# force a search for a valid GDAL install.
+gdal_setInstallation()
+valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+if(require(raster) && require(rgdal) && valid_install)
+{
 layer1 <- system.file("external/tahoe_lidar_bareearth.tif", package="gdalUtils")
 layer2 <- system.file("external/tahoe_lidar_highesthit.tif", package="gdalUtils")
 mosaic_rasters(gdalfile=c(layer1,layer2),dst_dataset="test_mosaic.envi",separate=TRUE,of="ENVI",

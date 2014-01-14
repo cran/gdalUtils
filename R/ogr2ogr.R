@@ -51,7 +51,8 @@
 #' @param gcp Numeric. c(ungeoref_x,ungeoref_y,georef_x georef_y,elevation) (starting with GDAL 1.10.0) Add the indicated ground control point. This option may be provided multiple times to provide a set of GCPs.
 #' @param order Numeric. (starting with GDAL 1.10.0) order of polynomial used for warping (1 to 3). The default is to select a polynomial order based on the number of GCPs.
 #' @param additional_commands Character. Additional commands to pass directly to ogrinfo.
-#' @param verbose Logical.
+#' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #'  
 #' @return character
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
@@ -69,13 +70,20 @@
 #'
 #' @references \url{http://www.gdal.org/ogr2ogr.html}
 #' 
-#' @examples \dontrun{ 
+#' @examples 
+#' # We'll pre-check to make sure there is a valid GDAL install.
+#' # Note this isn't strictly neccessary, as executing the function will
+#' # force a search for a valid GDAL install.
+#' gdal_setInstallation()
+#' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
+#' if(valid_install)
+#' {
 #' src_datasource_name <- system.file("external/tahoe_highrez_training.shp", package="gdalUtils")
 #' dst_datasource_name <- paste(tempfile(),".shp",sep="")
-#' ogrInfo(src_datasource_name,"tahoe_highrez_training")
+#' ogrinfo(src_datasource_name,"tahoe_highrez_training")
 #' # reproject the input to mercator
 #' ogr2ogr(src_datasource_name,dst_datasource_name,t_srs="EPSG:3395",verbose=TRUE)
-#' ogrInfo(dirname(dst_datasource_name),layer=remove_file_extension(basename(dst_datasource_name)))
+#' ogrinfo(dirname(dst_datasource_name),layer=remove_file_extension(basename(dst_datasource_name)))
 #' }
 #' @export
 
@@ -96,13 +104,15 @@ ogr2ogr <- function(src_datasource_name,dst_datasource_name,
 		fieldmap,splitlistfields,maxsubfields,
 		explodecollections,zfield,gcp,order,
 		additional_commands,
+		ignore.full_scan=TRUE,
 		verbose=FALSE)
 {
 	
 	parameter_values <- as.list(environment())
 	
 	if(verbose) message("Checking gdal_installation...")
-	gdal_setInstallation()
+	gdal_setInstallation(ignore.full_scan=ignore.full_scan,verbose=verbose)
+	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	# Start gdalinfo setup
 	parameter_variables <- list(
@@ -152,6 +162,8 @@ ogr2ogr <- function(src_datasource_name,dst_datasource_name,
 	
 	parameter_doubledash <- NULL
 	
+	parameter_noquotes <- c("spat")
+	
 	executable <- "ogr2ogr"
 	# End ogr2ogr setup
 	
@@ -161,7 +173,8 @@ ogr2ogr <- function(src_datasource_name,dst_datasource_name,
 			parameter_values=parameter_values,
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
-			parameter_doubledash=parameter_doubledash)
+			parameter_doubledash=parameter_doubledash,
+			parameter_noquotes=parameter_noquotes)
 	
 	if(verbose) message(paste("GDAL command being used:",cmd))
 	

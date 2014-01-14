@@ -2,7 +2,7 @@
 \alias{get_subdatasets}
 \title{get_subdatasets}
 \usage{
-get_subdatasets(datasetname, names_only = TRUE)
+get_subdatasets(datasetname, names_only = TRUE, verbose = FALSE)
 }
 \arguments{
   \item{datasetname}{Character. Input HDF4/5 or NetCDF
@@ -10,6 +10,9 @@ get_subdatasets(datasetname, names_only = TRUE)
 
   \item{names_only}{Logical. Return subdataset names only?
   Default=TRUE.}
+
+  \item{verbose}{Logical. Enable verbose execution? Default
+  is FALSE.}
 }
 \value{
 character vector of subdataset names that can be used in
