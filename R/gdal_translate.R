@@ -10,11 +10,15 @@
 #' @param b Numeric or Character. Select an input band band for output. Bands are numbered from 1. Multiple bands may be used to select a set of input bands to write to the output file, or to reorder bands. Starting with GDAL 1.8.0, band can also be set to "mask,1" (or just "mask") to mean the mask band of the first band of the input dataset.
 #' @param mask Numeric. (GDAL >= 1.8.0) Select an input band band to create output dataset mask band. Bands are numbered from 1. band can be set to "none" to avoid copying the global mask of the input dataset if it exists. Otherwise it is copied by default ("auto"), unless the mask is an alpha channel, or if it is explicitly used to be a regular band of the output dataset ("-b mask"). band can also be set to "mask,1" (or just "mask") to mean the mask band of the 1st band of the input dataset.
 #' @param expand Character. ("gray"|"rgb"|"rgba").  (From GDAL 1.6.0) To expose a dataset with 1 band with a color table as a dataset with 3 (RGB) or 4 (RGBA) bands. Useful for output drivers such as JPEG, JPEG2000, MrSID, ECW that don't support color indexed datasets. The 'gray' value (from GDAL 1.7.0) enables to expand a dataset with a color table that only contains gray levels to a gray indexed dataset.
-#' @param outsize Numeric. (c(xsize[percentage],ysize[percentage])). Set the size of the output file. Outsize is in pixels and lines unless '%' is attached in which case it is as a fraction of the input image size.
+#' @param outsize Numeric. (c(xsize[percentage],ysize[percentage])). Set the size of the output file. Outsize is in pixels and lines unless '\%' is attached in which case it is as a fraction of the input image size.
+#' @param tr Numeric. c(xres,yres). (starting with GDAL 2.0) set target resolution. The values must be expressed in georeferenced units. Both must be positive values. This is exclusive with -outsize and -a_ullr.
+#' @param r Character. resampling_method. ("nearest"|"bilinear"|"cubic"|"cubicspline"|"lanczos"|"average"|"mode")  (GDAL >= 2.0) Select a resampling algorithm.
 #' @param scale Numeric. (c(src_min,src_max,dst_min,dst_max)). Rescale the input pixels values from the range src_min to src_max to the range dst_min to dst_max. If omitted the output range is 0 to 255. If omitted the input range is automatically computed from the source data.
+#' @param exponent Numeric. (From GDAL 1.11) To apply non-linear scaling with a power function. exp_val is the exponent of the power function (must be postive). This option must be used with the -scale option. If specified only once, -exponent applies to all bands of the output image. It can be repeated several times so as to specify per band parameters. It is also possible to use the "-exponent_bn" syntax where bn is a band number (e.g. "-exponent_2" for the 2nd band of the output dataset) to specify the parameters of one or several specific bands.
 #' @param unscale Logical. Apply the scale/offset metadata for the bands to convert scaled values to unscaled values. It is also often necessary to reset the output datatype with the -ot switch.
 #' @param srcwin Numeric. (c(xoff,yoff,xsize,ysize)).  Selects a subwindow from the source image for copying based on pixel/line location.
 #' @param projwin Numeric. (c(ulx,uly,lrx,lry)).  Selects a subwindow from the source image for copying (like -srcwin) but with the corners given in georeferenced coordinates.
+#' @param projwin_srs Character. srs_def. (GDAL >= 2.0) Specifies the SRS in which to interpret the coordinates given with -projwin. The srs_def may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT. Note that this does not cause reprojection of the dataset to the specified SRS.
 #' @param epo Logical. (Error when Partially Outside)  (GDAL >= 1.10) If this option is set, -srcwin or -projwin values that falls partially outside the source raster extent will be considered as an error. The default behaviour starting with GDAL 1.10 is to accept such requests, when they were considered as an error before.
 #' @param eco Logical. (Error when Completely Outside) (GDAL >= 1.10) Same as -epo, except that the criterion for erroring out is when the request falls completely outside the source raster extent.
 #' @param a_srs Character.  Override the projection for the output file. The srs_def may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT.
@@ -26,12 +30,14 @@
 #' @param q Logical. Suppress progress monitor and other non-error output.
 #' @param sds Logical. Copy all subdatasets of this file to individual output files. Use with formats like HDF or OGDI that have subdatasets.
 #' @param stats Logical. (GDAL >= 1.8.0) Force (re)computation of statistics.
-#' @param additional_commands Character. Additional commands to pass directly to gdal_translate.
-#' @param sd_index Numeric. If the file is an HDF4 or HDF5 file, which subdataset should be returned (1 to the number of subdatasets)?  If this flag is used, src_dataset should be the filename of the multipart file.
+#' @param norat Logical. (GDAL >= 1.11) Do not copy source RAT into destination dataset.
+#' @param oo Character. NAME=VALUE. (starting with GDAL 2.0) Dataset open option (format specific)
+#' @param sd_index Numeric. If the file is an HDF4 or HDF5 file, which subdataset should be returned (1 to the number of subdatasets)?  If this flag is used, src_dataset should be the filename of the multipart file.  This parameter only works if the subdataset names follow the SUBDATASET_n_NAME convention.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
-#' @param ... Other parameters to pass to gdal_translate.
+#' @param ... Additional arguments.
+#' 
 #' @return NULL or if(output_Raster), a RasterBrick.
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
 #' @details This is an R wrapper for the 'gdal_translate' function that is part of the 
@@ -77,6 +83,7 @@
 #' hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
 #' gdal_translate(hdf4_dataset,"test_modis_sd1.tif",sd_index=1)
 #' }
+#' @import rgdal
 #' @export
 
 # TODO: return all subdatasets if sds=TRUE as a list of bricks
@@ -86,16 +93,18 @@
 # TODO: return > 1 sd
 
 gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
-		b,mask,expand,outsize,scale,unscale,srcwin,projwin,epo,eco,
-		a_srs,a_ullr,a_nodata,mo,co,gcp,q,sds,stats,
-		additional_commands,
+		b,mask,expand,outsize,tr,r,scale,exponent,unscale,srcwin,projwin,
+		projwin_srs,epo,eco,
+		a_srs,a_ullr,a_nodata,mo,co,gcp,q,sds,stats,norat,oo,
+#		additional_commands,
 		sd_index,
 		output_Raster=FALSE,
 		ignore.full_scan=TRUE,
 		verbose=FALSE,
-		...)
+		...
+)
 {
-	if(output_Raster && (!require(raster) || !require(rgdal)))
+	if(output_Raster && (!requireNamespace("raster") || !requireNamespace("rgdal")))
 	{
 		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
 		return(NULL)
@@ -114,22 +123,23 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 	
 	parameter_variables <- list(
 			logical = list(
-					varnames <- c("strict","unscale","epo","eco","q","sds","stats")),
+					varnames <- c("strict","unscale","epo","eco","q","sds","stats","norat")),
 			vector = list(
-					varnames <- c("outsize","scale","srcwin","projwin","a_ullr","gcp")),
+					varnames <- c("outsize","tr","scale","exponent","srcwin","projwin","a_ullr","gcp")),
 			scalar = list(
 					varnames <- c("a_nodata")),
 			character = list(
-					varnames <- c("ot","of","mask","expand","a_srs","src_dataset","dst_dataset")),
+					varnames <- c("ot","of","mask","expand","r","projwin_srs","a_srs","oo","src_dataset","dst_dataset")),
 			repeatable = list(
 					varnames <- c("b","mo","co")))
 	
 	parameter_order <- c(
-			"strict","unscale","epo","eco","q","sds","stats",
-			"outsize","scale","srcwin","projwin","a_ullr","gcp",
+			"strict","exponent","unscale","epo","eco","q","sds","stats",
+			"norat",
+			"outsize","tr","scale","srcwin","projwin","a_ullr","gcp",
 			"a_nodata",
-			"ot","of","mask","expand","a_srs",
-			"b","mo","co",
+			"ot","of","mask","expand","r","projwin_srs","a_srs",
+			"b","mo","co","oo",
 			"src_dataset","dst_dataset")
 	
 	parameter_noflags <- c("src_dataset","dst_dataset")

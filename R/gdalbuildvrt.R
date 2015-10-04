@@ -19,12 +19,13 @@
 #' @param srcnodata Character. (starting with GDAL 1.7.0) Set nodata values for input bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. If the option is not specified, the intrinsic nodata settings on the source datasets will be used (if they exist). The value set by this option is written in the NODATA element of each ComplexSource element. Use a value of None to ignore intrinsic nodata settings on the source datasets.
 #' @param vrtnodata Character. (starting with GDAL 1.7.0) Set nodata values at the VRT band level (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. If the option is not specified, intrinsic nodata settings on the first dataset will be used (if they exist). The value set by this option is written in the NoDataValue element of each VRTRasterBand element. Use a value of None to ignore intrinsic nodata settings on the source datasets.
 #' @param a_srs Character. (starting with GDAL 1.10) Override the projection for the output file. The srs_def may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT.
+#' @param r Character. ("nearest" (default) | "bilinear" | "cubic" | "cubicspline" | "lanczos" | "average" | "mode"). (GDAL >= 2.0) Select a resampling algorithm.
 #' @param input_file_list Character. To specify a text file with an input filename on each line.
 #' @param overwrite Logical. Overwrite the VRT if it already exists.
-#' @param additional_commands Character. Additional commands to pass directly to ogrinfo.
+## @param additional_commands Character. Additional commands to pass directly to ogrinfo.
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
-#' @param ... Other parameters to pass to gdal_translate.
+#' @param ... Additional arguments.
 #' 
 #' @return NULL
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
@@ -62,11 +63,12 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 		tileindex,resolution,te,tr,tap,
 		separate,b,sd,allow_projection_difference,q,
 		addalpha,hidenodata,srcnodata,vrtnodata,
-		a_srs,input_file_list,overwrite,
-		additional_commands,
+		a_srs,r,input_file_list,overwrite,
+#		additional_commands,
 		ignore.full_scan=TRUE,
 		verbose=FALSE,
-		...)
+		...
+)
 {
 	
 	parameter_values <- as.list(environment())
@@ -87,7 +89,7 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 					varnames <- c("b","sd")),
 			character = list(
 					varnames <- c("resolution","srcnodata","vrtnodata",
-							"a_srs","input_file_list",
+							"a_srs","r","input_file_list",
 							"output.vrt","gdalfile")),
 			repeatable = list(
 					varnames <- NULL)
@@ -97,7 +99,7 @@ gdalbuildvrt <- function(gdalfile,output.vrt,
 			"tileindex","resolution","te","tr","tap",
 			"separate","b","sd","allow_projection_difference",
 			"q","addalpha","hidenodata","srcnodata","vrtnodata",
-			"a_srs","input_file_list","overwrite","output.vrt",
+			"a_srs","r","input_file_list","overwrite","output.vrt",
 			"gdalfile")
 	
 	parameter_noflags <- c("output.vrt","gdalfile")

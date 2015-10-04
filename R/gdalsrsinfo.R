@@ -7,7 +7,7 @@
 #' @param V Logical. Validate SRS.
 #' @param o Character. Output type ("default"|"all"|"wkt_all"|"proj4"|"wkt"|"wkt_simple"|"wkt_noct"|"wkt_esri"|"mapinfo"|"xml")
 #' @param as.CRS Logical. Return a CRS object?  Default=FALSE.
-#' @param additional_commands Character. Additional commands to pass directly to gdalsrsinfo.
+## @param additional_commands Character. Additional commands to pass directly to gdalsrsinfo.
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' 
@@ -28,7 +28,7 @@
 #' If as.CRS is set to TRUE, 'o' will automatically be set to "proj4" and the output
 #' will be coerced to a CRS object for use with sp.
 #'
-#' @references \url{http://www.gdal.org/gdalinfo.html}
+#' @references \url{http://www.gdal.org/gdalsrsinfo.html}
 #' 
 #' @examples 
 #' # We'll pre-check to make sure there is a valid GDAL install.
@@ -49,7 +49,7 @@
 #' @export
 
 gdalsrsinfo <- function(srs_def,p,V,o,
-	additional_commands,
+#	additional_commands,
 	as.CRS=FALSE,
 	ignore.full_scan=TRUE,
 	verbose=FALSE)

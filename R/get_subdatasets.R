@@ -1,6 +1,6 @@
 #' get_subdatasets
 #' 
-#' Returns HDF4, HDF5, and NetCDF subdataset names
+#' Returns HDF4, HDF5, and NetCDF subdataset names for standardized files.
 #' 
 #' @param datasetname Character. Input HDF4/5 or NetCDF file.
 #' @param names_only Logical. Return subdataset names only?  Default=TRUE.
@@ -24,6 +24,7 @@
 #' hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
 #' get_subdatasets(hdf4_dataset)
 #' }
+#' @importFrom utils glob2rx
 #' @export
 
 get_subdatasets <- function(datasetname,names_only=TRUE,verbose=FALSE)

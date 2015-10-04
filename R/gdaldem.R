@@ -23,7 +23,7 @@
 #' @param alpha Logical. (mode=="color-relief") add an alpha channel to the output raster.
 #' @param exact_color_entry Logical. (mode=="color-relief") use strict matching when searching in the color configuration file. If none matching color entry is found, the "0,0,0,0" RGBA quadruplet will be used.
 #' @param nearest_color_entry Logical. (mode=="color-relief") use the RGBA quadruplet corresponding to the closest entry in the color configuration file.
-#' @param additional_commands Character. Additional commands to pass directly to gdalsrsinfo.
+## @param additional_commands Character. Additional commands to pass directly to gdalsrsinfo.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
@@ -85,6 +85,7 @@
 #' plot(output_aspect,col=gray.colors(256))
 #' }
 #' }
+#' @import rgdal
 #' @export
 
 # TODO: Fully document this.
@@ -96,12 +97,12 @@ gdaldem <- function(
 		p,
 		trigonometric,zero_for_flat,
 		color_text_file,alpha,exact_color_entry,nearest_color_entry,
-		additional_commands,
+#		additional_commands,
 		output_Raster=FALSE,
 		ignore.full_scan=TRUE,
 		verbose=FALSE)
 {	
-	if(output_Raster && (!require(raster) || !require(rgdal)))
+	if(output_Raster && (!requireNamespace("raster") || !requireNamespace("rgdal")))
 	{
 		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
 		return(NULL)

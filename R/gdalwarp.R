@@ -14,13 +14,15 @@
 #' @param et Numeric. error threshold for transformation approximation (in pixel units - defaults to 0.125).
 #' @param refine_gcps Numeric. (GDAL >= 1.9.0) refines the GCPs by automatically eliminating outliers. Outliers will be eliminated until minimum_gcps are left or when no outliers can be detected. The tolerance is passed to adjust when a GCP will be eliminated. Note that GCP refinement only works with polynomial interpolation. The tolerance is in pixel units if no projection is available, otherwise it is in SRS units. If minimum_gcps is not provided, the minimum GCPs according to the polynomial model is used.
 #' @param te Numeric. (c(xmin,ymin,xmax,ymax)). set georeferenced extents of output file to be created (in target SRS).
+#' @param te_srs Character. srs_def. (GDAL >= 2.0) Specifies the SRS in which to interpret the coordinates given with -te. The srs_def may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT. This must not be confused with -t_srs which is the target SRS of the output dataset. -te_srs is a conveniency e.g. when knowing the output coordinates in a geodetic long/lat SRS, but still wanting a result in a projected coordinate system.
 #' @param tr Numeric. (c(xres,yres)). set output file resolution (in target georeferenced units)
 #' @param tap Logical. (GDAL >= 1.8.0) (target aligned pixels) align the coordinates of the extent of the output file to the values of the -tr, such that the aligned extent includes the minimum extent.
 #' @param ts Numeric. (c(width,height)). set output file size in pixels and lines. If width or height is set to 0, the other dimension will be guessed from the computed resolution. Note that -ts cannot be used with -tr
+#' @param ovr Character. (level | "AUTO" | "AUTO-n" | "NONE"). (GDAL >= 2.0) To specify which overview level of source files must be used. The default choice, AUTO, will select the overview level whose resolution is the closest to the target resolution. Specify an integer value (0-based, i.e. 0=1st overview level) to select a particular level. Specify AUTO-n where n is an integer greater or equal to 1, to select an overview level below the AUTO one. Or specify NONE to force the base resolution to be used.
 #' @param wo Character. Set a warp options. The GDALWarpOptions::papszWarpOptions docs show all options. Multiple -wo options may be listed.
 #' @param ot Character. For the output bands to be of the indicated data type.
 #' @param wt Character. Working pixel data type. The data type of pixels in the source image and destination image buffers.
-#' @param r Character. resampling_method. ("near"|"bilinear"|"cubic"|"cubicspline"|"lanczos"|"average"|"mode")  See Description.
+#' @param r Character. resampling_method. ("near"|"bilinear"|"cubic"|"cubicspline"|"lanczos"|"average"|"mode"|"max"|"min"|"med"|"q1"|"q3")  See Description.
 #' @param srcnodata Character. Set nodata masking values for input bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. Masked values will not be used in interpolation. Use a value of None to ignore intrinsic nodata settings on the source dataset.
 #' @param dstnodata Character. Set nodata values for output bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. New files will be initialized to this value and if possible the nodata value will be recorded in the output file. Use a value of None to ensure that nodata is not defined (GDAL>=2.0). If this argument is not used then nodata values will be copied from the source dataset (GDAL>=2.0).
 #' @param dstalpha Logical. Create an output alpha band to identify nodata (unset/transparent) pixels.
@@ -39,10 +41,14 @@
 #' @param nomd Logical. (GDAL >= 1.10.0) Do not copy metadata. Without this option, dataset and band metadata (as well as some band information) will be copied from the first source dataset. Items that differ between source datasets will be set to * (see -cvmd option).
 #' @param cvmd Character. (GDAL >= 1.10.0) Value to set metadata items that conflict between source datasets (default is "*"). Use "" to remove conflicting items.
 #' @param setci Logical. (GDAL >= 1.10.0) Set the color interpretation of the bands of the target dataset from the source dataset.
-#' @param additional_commands Character. Additional commands to pass directly to gdalwarp.
+#' @param oo Character. NAME=VALUE. (starting with GDAL 2.0) Dataset open option (format specific).
+#' @param doo Character. NAME=VALUE. (starting with GDAL 2.1) Output dataset open option (format specific).
+## @param additional_commands Character. Additional commands to pass directly to gdalwarp.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
+#' @param ... Additional arguments.
+#' 
 #' @return NULL or if(output_Raster), a RasterBrick.
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net}) (wrapper) and Frank Warmerdam (GDAL lead developer).
 #' @details This is an R wrapper for the 'gdalwarp' function that is part of the 
@@ -59,14 +65,21 @@
 #' as specified with the "of" (output format) parameter.
 #' 
 #' The resampling_methods available are as follows:
-#' near: nearest neighbour resampling (default, fastest algorithm, worst interpolation quality).
-#' bilinear: bilinear resampling.
-#' cubic: cubic resampling.
-#' cubicspline: cubic spline resampling.
-#' lanczos: Lanczos windowed sinc resampling.
-#' average: average resampling, computes the average of all non-NODATA contributing pixels. (GDAL >= 1.10.0)
-#' mode: mode resampling, selects the value which appears most often of all the sampled points. (GDAL >= 1.10.0)
-#' 
+#' \itemize{
+#' \item{near: nearest neighbour resampling (default, fastest algorithm, worst interpolation quality).}
+#' \item{bilinear: bilinear resampling.}
+#' \item{cubic: cubic resampling.}
+#' \item{cubicspline: cubic spline resampling.}
+#' \item{lanczos: Lanczos windowed sinc resampling.}
+#' \item{average: average resampling, computes the average of all non-NODATA contributing pixels. (GDAL >= 1.10.0)}
+#' \item{mode: mode resampling, selects the value which appears most often of all the sampled points. (GDAL >= 1.10.0)}
+#' \item{max: maximum resampling, selects the maximum value from all non-NODATA contributing pixels. (GDAL >= 2.0.0)}
+#' \item{min: minimum resampling, selects the minimum value from all non-NODATA contributing pixels. (GDAL >= 2.0.0)}
+#' \item{med: median resampling, selects the median value of all non-NODATA contributing pixels. (GDAL >= 2.0.0)}
+#' \item{q1: first quartile resampling, selects the first quartile value of all non-NODATA contributing pixels. (GDAL >= 2.0.0)}
+#' \item{q3: third quartile resampling, selects the third quartile value of all non-NODATA contributing pixels. (GDAL >= 2.0.0)}
+#' }
+
 #' The user can choose to (optionally) return a RasterBrick of the output file (assuming
 #' raster/rgdal supports the particular output format).
 #'
@@ -88,21 +101,23 @@
 #' 		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE,
 #' 		overwrite=TRUE,verbose=TRUE)
 #' }
+#' @import rgdal
 #' @export
 
 gdalwarp <- function(
 		#help_general,formats, # Need to fix these
 		srcfile,dstfile,
 		s_srs,t_srs,to,
-		order,tps,rpc,geoloc,et,refine_gcps,te,tr,tap,ts,wo,ot,wt,r,srcnodata,dstnodata,
+		order,tps,rpc,geoloc,et,refine_gcps,te,te_srs,tr,tap,ts,ovr,wo,ot,wt,r,srcnodata,dstnodata,
 		dstalpha,wm,multi,q,of="GTiff",co,cutline,cl,cwhere,csql,cblend,crop_to_cutline,
-		overwrite,nomd,cvmd,setci,
-		additional_commands,
+		overwrite,nomd,cvmd,setci,oo,doo,
+#		additional_commands,
 		output_Raster=FALSE,
 		ignore.full_scan=TRUE,
-		verbose=FALSE)
+		verbose=FALSE,
+		...)
 {
-	if(output_Raster && (!require(raster) || !require(rgdal)))
+	if(output_Raster && (!requireNamespace("raster") || !requireNamespace("rgdal")))
 	{
 		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
 		return(NULL)
@@ -133,9 +148,9 @@ gdalwarp <- function(
 					)),
 			character = list(
 					varnames <- c(
-							"s_srs","t_srs","to","ot","wt","r",
+							"s_srs","t_srs","to","te_srs","ovr","ot","wt","r",
 							"srcnodata","dstnodata","of","cutline","cl",
-							"cwhere","csql","cvmd","dstfile"
+							"cwhere","csql","cvmd","oo","doo","dstfile"
 					)),
 			repeatable = list(
 					varnames <- c(
@@ -147,13 +162,13 @@ gdalwarp <- function(
 			"tps","rpc","geoloc","tap","dstalpha",
 			"multi","q","crop_to_cutline","overwrite","nomd",
 			"setci",
-			"te","tr","ts",
+			"te","te_srs","tr","ts","ovr",
 			"order","et","refine_gcps","wm",
 			"cblend",
 			"s_srs","t_srs","to","ot","wt","r",
 			"srcnodata","dstnodata","of","cutline","cl",
 			"cwhere","csql","cvmd",
-			"wo","co",
+			"wo","co","oo","doo",
 			"srcfile","dstfile"
 	)
 	

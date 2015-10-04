@@ -16,8 +16,14 @@
 #' @param fid Numeric. If provided, only the feature with this feature id will be reported. Operates exclusive of the spatial or attribute queries. Note: if you want to select several features based on their feature id, you can also use the fact the 'fid' is a special field recognized by OGR SQL. So, '-where "fid in (1,3,5)"' would select features 1, 3 and 5.
 #' @param fields Character. ("YES"|"NO") (starting with GDAL 1.6.0) If set to NO, the feature dump will not display field values. Default value is YES.
 #' @param geom Character. ("YES"|"NO"|"SUMMARY") (starting with GDAL 1.6.0) If set to NO, the feature dump will not display the geometry. If set to SUMMARY, only a summary of the geometry will be displayed. If set to YES, the geometry will be reported in full OGC WKT format. Default value is YES.
+#' @param oo Character. "NAME=VALUE". (starting with GDAL 2.0) Dataset open option (format specific).
+#' @param nomd Logical. (starting with GDAL 2.0) Suppress metadata printing. Some datasets may contain a lot of metadata strings.
+#' @param listmdd Logical. (starting with GDAL 2.0) List all metadata domains available for the dataset.
+#' @param mdd Character. (starting with GDAL 2.0) Report metadata for the specified domain. "all" can be used to report metadata in all domains.
+#' @param nocount Logical. (starting with GDAL 2.0) Suppress feature count printing.
+#' @param noextent Logical. (starting with GDAL 2.0) Suppress spatial extent printing.
 #' @param formats Logical. List the format drivers that are enabled.
-#' @param additional_commands Character. Additional commands to pass directly to ogrinfo.
+## @param additional_commands Character. Additional commands to pass directly to ogrinfo.
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' 
@@ -65,8 +71,10 @@
 
 ogrinfo <- function(datasource_name,layer,
 		ro,q,where,spat,geomfield,fid,sql,
-		dialect,al,so,fields,geom,formats,
-		additional_commands,
+		dialect,al,so,fields,geom,
+		oo,nomd,listmdd,mdd,nocount,noextent,
+		formats,
+#		additional_commands,
 		ignore.full_scan=TRUE,
 		verbose=FALSE)
 {
@@ -80,7 +88,7 @@ ogrinfo <- function(datasource_name,layer,
 	# Start gdalinfo setup
 	parameter_variables <- list(
 			logical = list(
-					varnames <- c("ro","al","so","q","formats")),
+					varnames <- c("ro","al","so","q","nomd","listmdd","nocount","noextent","formats")),
 			vector = list(
 					varnames <- c("spat")),
 			scalar = list(
@@ -88,14 +96,16 @@ ogrinfo <- function(datasource_name,layer,
 			character = list(
 					varnames <- c("datasource_name","layer",
 						"where","sql","dialect","geomfield","fid",
-						"fields","geom")),
+						"fields","geom","oo","mdd")),
 			repeatable = list(
 					varnames <- NULL)
 	)
 	
 	parameter_order <- c(
 			"ro","q","where","spat","geomfield","fid","sql","dialect",
-			"al","so","fields","geom","formats","datasource_name","layer")
+			"al","so","fields","geom",
+			"oo","nomd","listmdd","mdd","nocount","noextent",
+			"formats","datasource_name","layer")
 	
 	parameter_noflags <- c("datasource_name","layer")
 	

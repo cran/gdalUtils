@@ -46,6 +46,8 @@
 #' getOption("gdalUtils_gdalPath")[[1]]$version
 #' }
 #' @importFrom R.utils listDirectory
+## @import utils
+## @importFrom utils shortPathName
 #' @export
 
 # TODO: interface with gdal_chooseInstallation to remove some installs.
@@ -211,7 +213,7 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 		{
 			if (.Platform$OS.type=="windows")
 			{
-				x <- shortPathName(x)
+				x <- utils::shortPathName(x)
 			} else
 			{
 				x <- path.expand(x)
@@ -224,15 +226,28 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 	}
 	
 # Checks if GDAL is functional
-	gdal_check_validity <- function(path)
+	gdal_check_validity <- function(path,utility="^gdalinfo$|^gdalinfo\\.exe$")
 	{
+#		full_utility_list <- c(
+#				"^gdalinfo$|^gdalinfo\\.exe$",
+#				"^gdal_rasterize$|^gdal_rasterize\\.exe$",
+#				"^gdal_translate$|^gdal_translate\\.exe$",
+#				"^gdaladdo$|^gdaladdo\\.exe$",
+#				"^gdalbuildvrt$|^gdalbuildvrt\\.exe$",
+#				"^gdaldem$|^gdaldem\\.exe$",
+#				"^gdalsrsinfo$|^gdaldem\\.exe$",
+#				
+#				)
+	 	
+		
 		checkValidity <- sapply(path,
 				function(x)
 				{
 					cmd <- normalizePath(
 							listDirectory(
 #							list.files(
-									path=x,pattern="^gdalinfo$|^gdalinfo\\.exe$",
+#									path=x,pattern="^gdalinfo$|^gdalinfo\\.exe$",
+									path=x,pattern=utility,
 									fullNames=TRUE)
 #									full.names=TRUE)
 					)
@@ -258,7 +273,7 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 			ignore.which=FALSE,
 			ignore.common=FALSE,
 			ignore.full_scan=FALSE,
-			force_full_scan = FALSE, 
+#			force_full_scan = FALSE, 
 			checkValidity, 
 			search_path_recursive=FALSE,
 			verbose = FALSE)
@@ -275,7 +290,7 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 		
 		path <- NULL
 		# Rescan will override everything.
-		if(!force_full_scan)
+		if(ignore.full_scan)
 		{
 #			if(verbose) message("No forced full scan...")
 			# Check options first.
@@ -361,7 +376,8 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 					common_locations <- c(
 							"C:\\Program Files",
 							"C:\\Program Files (x86)",
-							"C:\\OSGeo4W"
+							"C:\\OSGeo4W",
+							"C:\\OSGeo4W64"
 					)
 				}
 				
@@ -405,13 +421,13 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 					path <- c(path,common_paths)
 				}
 			}
-			if(!ignore.full_scan && length(path)==0)
+			if(ignore.full_scan && length(path)==0)
 			{
-				force_full_scan=TRUE
+				ignore.full_scan=FALSE
 			}
 		}
 		
-		if(force_full_scan)
+		if(!ignore.full_scan)
 		{
 			if(verbose) message("Scanning your root-dir for available GDAL installations,... This could take some time...")
 			if (.Platform$OS=="unix")

@@ -13,6 +13,7 @@
 #' @param l Character. Indicates the layer(s) from the datasource that will be used for input features. May be specified multiple times, but at least one layer name or a -sql option must be specified.
 #' @param where Character. An optional SQL WHERE style query expression to be applied to select features to burn in from the input layer(s).
 #' @param sql Character. An SQL statement to be evaluated against the datasource to produce a virtual layer of features to be burned in.
+#' @param dialect Character. (starting with GDAL 2.1) The SQL dialect. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL. Starting with GDAL 1.10, the "SQLITE" dialect can also be used with any datasource.
 #' @param of Character. (GDAL >= 1.8.0) Select the output format. The default is GeoTIFF (GTiff). Use the short format name.
 #' @param a_nodata Numeric. (GDAL >= 1.8.0) Assign a specified nodata value to output bands.
 #' @param init Numeric. (GDAL >= 1.8.0) Pre-initialize the output image bands with these values. However, it is not marked as the nodata value in the output file. If only one value is given, the same value is used in all the bands.
@@ -24,7 +25,6 @@
 #' @param ts Numeric. c(width,height) (GDAL >= 1.8.0) set output file size in pixels and lines. Note that -ts cannot be used with -tr
 #' @param ot Character. (GDAL >= 1.8.0) For the output bands to be of the indicated data type. Defaults to Float64
 #' @param q Logical. (GDAL >= 1.8.0) Suppress progress monitor and other non-error output.
-#' @param additional_commands Character. Additional commands to pass directly to gdal_rasterize.
 #' @param output_Raster Logical. Return output dst_filename as a RasterBrick?
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
@@ -71,19 +71,20 @@
 #' #After plot:
 #' plotRGB(brick(dst_filename))
 #' }
+#' @import rgdal
 #' @export
 
 gdal_rasterize <- function(
 		src_datasource,dst_filename,
-		b,i,at,burn,a,threeD,l,where,sql,
+		b,i,at,burn,a,threeD,l,where,sql,dialect,
 		of,a_srs,co,a_nodata,init,
 		te,tr,tap,ts,ot,q,
-		additional_commands,
+#		additional_commands,
 		output_Raster=FALSE,
 		ignore.full_scan=TRUE,
 		verbose=FALSE)
 {
-	if(output_Raster && (!require(raster) || !require(rgdal)))
+	if(output_Raster && (!requireNamespace("raster") || !requireNamespace("rgdal")))
 	{
 		warning("rgdal and/or raster not installed. Please install.packages(c('rgdal','raster')) or set output_Raster=FALSE")
 		return(NULL)
@@ -111,7 +112,7 @@ gdal_rasterize <- function(
 					)),
 			character = list(
 					varnames <- c(
-					"a","where","sql","of","a_srs","ot",
+					"a","where","sql","dialect","of","a_srs","ot",
 					"src_datasource","dst_filename"
 					)),
 			repeatable = list(
@@ -122,7 +123,7 @@ gdal_rasterize <- function(
 	
 	parameter_order <- c(
 			"b","i","at","burn","a","threeD","l",
-			"where","sql",
+			"where","sql","dialect",
 			"of","a_srs","co","a_nodata","init",
 			"te","tr","tap","ts","ot","q",
 			"src_datasource","dst_filename"
