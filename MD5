@@ -1,13 +1,13 @@
-ddcaebc64f8ca9597e425d8b19dfade5 *DESCRIPTION
+ce4d960a1dab043259cd6f6ae45c7b71 *DESCRIPTION
 1e98435a7725fa5a7d864c4887788100 *NAMESPACE
 e8d9bca0222c2150c7d083901aebb57f *R/align_rasters.R
 f19286cf5bc31a0f0d91a4161b466ef6 *R/batch_gdal_translate.R
-a26bfa7dc2016dd46b42e2745298f45b *R/gdal_chooseInstallation.R
+ecb504f840875f54937316210ec9d804 *R/gdal_chooseInstallation.R
 7287968f77e3cc42f7b5eedc6894d003 *R/gdal_cmd_builder.R
 f484a565b91093720742b4886198b740 *R/gdal_contour.R
 24d7f4a99245a1b5df6cd53faf189ea7 *R/gdal_grid.R
 8d11ae2f4673bab6ade73b004b1aee24 *R/gdal_rasterize.R
-5638c72352c4f4e7d5995f616d077c07 *R/gdal_setInstallation.R
+e64ff56ba1c38d06be9638f46c4e5234 *R/gdal_setInstallation.R
 7aee0da590595c0a90e86f6f81837894 *R/gdal_translate.R
 c0a9c56753324ad1da82a2084d63d5af *R/gdaladdo.R
 b415a917d0bda460e7a32af620e8270f *R/gdalbuildvrt.R

@@ -8,12 +8,15 @@ LazyLoad: yes
 Author: Jonathan Asher Greenberg and Matteo Mattiuzzi
 Description: Wrappers for the Geospatial Data Abstraction Library (GDAL)
     Utilities.
-Version: 2.0.1.5
-Date: 2015-10-04
+Version: 2.0.1.7
+Date: 2015-10-08
 Depends: R (>= 2.14.0)
 Imports: sp, foreach, R.utils, raster, rgdal
 SystemRequirements: GDAL binaries
-NeedsCompilation: no
-Packaged: 2015-10-04 19:18:58 UTC; jgrn307
 Repository: CRAN
-Date/Publication: 2015-10-04 23:31:20
+Repository/R-Forge/Project: gdalutils
+Repository/R-Forge/Revision: 133
+Repository/R-Forge/DateTimeStamp: 2015-10-09 02:05:20
+Date/Publication: 2015-10-10 22:50:40
+NeedsCompilation: no
+Packaged: 2015-10-09 02:20:24 UTC; rforge

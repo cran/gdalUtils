@@ -360,14 +360,16 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 				if (.Platform$OS=="unix")
 				{
 					common_locations <- c(
-							# UNIX systems
+							### UNIX systems
 							"/usr/bin",
 							"/usr/local/bin",
-							# Mac
+							### Mac
 							# Kyngchaos frameworks:
 							"/Library/Frameworks/GDAL.framework",
 							# MacPorts:
-							"/opt/local/bin"
+							"/opt/local/bin",
+							# Homebrew:
+							"/usr/local/Cellar/gdal/"
 					)
 				}
 				
