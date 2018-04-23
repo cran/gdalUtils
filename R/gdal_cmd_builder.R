@@ -109,13 +109,20 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		parameter_variables_logical <- parameter_variables$logical[[1]]
 		parameter_variables_logical_defined <- defined_variables[defined_variables %in% parameter_variables_logical]
 		# Only set the flag if TRUE
+		# browser()
 		if(length(parameter_variables_logical_defined)>0)
 		{
+			
+#			browser()
 			parameter_variables_logical_defined_true <- sapply(parameter_variables_logical_defined,
 					function(X,parameter_values)
 					{
 						return(parameter_values[[which(names(parameter_values)==X)]])
 					},parameter_values=parameter_values)
+			
+			# parameter_variables_logical_defined_true <- parameter_variables_logical_defined_true[parameter_variables_logical_defined_true==T]
+			
+#			browser()
 			
 			parameter_variables_logical_strings <- sapply(parameter_variables_logical_defined,
 					function(X,parameter_doubledash)
@@ -136,6 +143,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 						return(flag)
 					},parameter_doubledash=parameter_doubledash)	
 			names(parameter_variables_logical_strings) <- names(parameter_variables_logical_defined_true)
+			# Get rid of ones you don't need:
+			parameter_variables_logical_strings <- parameter_variables_logical_strings[parameter_variables_logical_defined_true==T]
+			
 		} else
 		{
 			parameter_variables_logical_strings <- NULL
@@ -183,6 +193,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		{
 			parameter_variables_vector_strings <- NULL
 		}
+	} else
+	{
+		parameter_variables_vector_strings <- NULL
 	}
 	
 	if(any("scalar" %in% parameter_variables_types))
@@ -216,6 +229,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		{
 			parameter_variables_scalar_strings <- NULL
 		}
+	} else
+	{
+		parameter_variables_scalar_strings <- NULL
 	}
 	
 	if(any("character" %in% parameter_variables_types))
@@ -250,6 +266,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		{
 			parameter_variables_character_strings <- NULL
 		}
+	} else
+	{
+		parameter_variables_character_strings <- NULL
 	}
 	
 	if(any("repeatable" %in% parameter_variables_types))
@@ -274,6 +293,7 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 								flag=paste("-",X," ",sep="")
 							}
 						}
+						# browser()
 						parameter_variables_repeatable_string <- paste(
 								paste(flag,
 										qm(parameter_values[[which(names(parameter_values)==X)]]),
@@ -285,6 +305,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		{
 			parameter_variables_repeatable_strings <- NULL
 		}
+	} else
+	{
+		parameter_variables_repeatable_strings <- NULL
 	}
 	
 	if(!is.null(parameter_noflags))
@@ -305,7 +328,12 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 #		{
 #			parameter_variables_noflag_strings <- NULL
 #		}
+	} else
+	{
+		parameter_variables_noflag_strings <- NULL	
 	}
+	
+#	browser()
 	
 	parameter_vector <- c(
 			parameter_variables_logical_strings,

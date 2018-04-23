@@ -2,8 +2,8 @@
 #' 
 #' R wrapper for ogr2ogr: converts simple features data between file formats
 #' 
-#' @param src_datasource_name Character. Input vector file.
-#' @param dst_datasource_name Character. Output vector file.
+#' @param src_datasource_name Character. Input vector file or input directory.
+#' @param dst_datasource_name Character. Output vector file or input directory.
 #' @param layer Character. Layer to use.
 #' @param f Character. output file format name (default is ESRI Shapefile), some possible values are: "ESRI Shapefile", "TIGER", "MapInfo File", "GML", "PostgreSQL"
 #' @param append Logical. Append to existing layer instead of creating new
@@ -89,6 +89,10 @@
 #' performance boot. See the PG driver documentation page.
 #' 
 #' More generally, consult the documentation page of the input and output drivers for performance hints.
+#' 
+#' NOTE FOR SQL USERS: When using SQL statements via the sql="some sql statement", be aware the src_datasource_name and
+#' dst_datasource_name should still be set.  src_datasource_name is treated as the path to the 
+#' tables/vectors called in the SQL statement, and dst_datasource_name will be the folder the outputs will be stored in.
 #' 
 #' This function assumes the user has a working GDAL on their system.  If the 
 #' "gdalUtils_gdalPath" option has been set (usually by gdal_setInstallation),

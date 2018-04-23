@@ -99,7 +99,7 @@ nearblack <- function(
 	
 	parameter_noquotes <- unlist(parameter_variables$vector)
 	
-	executable <- "gdaladdo"
+	executable <- "nearblack"
 	# End gdalinfo setup
 	
 	cmd <- gdal_cmd_builder(

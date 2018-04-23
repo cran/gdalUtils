@@ -24,6 +24,7 @@
 #' @param sql Character. "select_statement". An SQL statement to be evaluated against the datasource to produce a virtual layer of features to be processed.
 #' @param co Character. "NAME=VALUE". Passes a creation option to the output format driver. Multiple -co options may be listed. See format specific documentation for legal creation options for each format.
 #' @param q Logical. Suppress progress monitor and other non-error output.
+#' @param config Character. Sets runtime configuration options for GDAL.  See https://trac.osgeo.org/gdal/wiki/ConfigOptions for more information.
 #' @param output_Raster Logical. Return output dst_filename as a RasterBrick?
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
@@ -263,6 +264,7 @@ gdal_grid <- function(
 		z_increase,z_multiply,a,spat,clipsrc,
 		clipsrcsql,clipsrclayer,clipsrcwhere,
 		l,where,sql,co,q,
+		config,
 		output_Raster=FALSE,
 		ignore.full_scan=TRUE,
 		verbose=FALSE #,
@@ -301,7 +303,7 @@ gdal_grid <- function(
 							"l","where","sql","co","src_datasource","dst_filename"
 					)),
 			repeatable = list(
-					varnames <- c(
+					varnames <- c("config"
 					
 					))
 	)
@@ -323,13 +325,15 @@ gdal_grid <- function(
 			"txe","tye","outsize","spat",
 			"z_increase","z_multiply",
 			"ot","of","a_srs","zfield","a","clipsrc","clipsrcsql","clipsrclayer",
-			"l","where","sql","co","src_datasource","dst_filename"
+			"l","where","sql","co","src_datasource","dst_filename","config"
 	
 	)
 	
 	parameter_noflags <- c("src_datasource","dst_filename")
 	
 	parameter_noquotes <- unlist(parameter_variables$vector)
+	
+	parameter_doubledash <- c("config")
 	
 	executable <- "gdal_grid"
 	
@@ -340,6 +344,7 @@ gdal_grid <- function(
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
 			parameter_noquotes=parameter_noquotes,
+			parameter_doubledash=parameter_doubledash,
 			#		gdal_installation_id=gdal_chooseInstallation(hasDrivers=of))
 			gdal_installation_id=gdal_chooseInstallation())
 	

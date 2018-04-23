@@ -26,13 +26,14 @@
 #' @param a_nodata Numeric. Assign a specified nodata value to output bands. Starting with GDAL 1.8.0, can be set to none to avoid setting a nodata value to the output file if one exists for the source file
 #' @param mo Character. ("META-TAG=VALUE").  Passes a metadata key and value to set on the output dataset if possible.
 #' @param co Character. ("NAME=VALUE"). Passes a creation option to the output format driver. Multiple -co options may be listed. See format specific documentation for legal creation options for each format.
-#' @param gcp Numeric. (c(pixel,line,easting,northing(,elevation))). Add the indicated ground control point to the output dataset. This option may be provided multiple times to provide a set of GCPs.
+#' @param gcp Matrix. Add the indicated ground control point to the output dataset. This option may be provided multiple times to provide a set of GCPs.  Columns represent pixel,line,easting,northing and (optionally) elevation, in that order, and rows represent each individual gcp.
 #' @param q Logical. Suppress progress monitor and other non-error output.
 #' @param sds Logical. Copy all subdatasets of this file to individual output files. Use with formats like HDF or OGDI that have subdatasets.
 #' @param stats Logical. (GDAL >= 1.8.0) Force (re)computation of statistics.
 #' @param norat Logical. (GDAL >= 1.11) Do not copy source RAT into destination dataset.
 #' @param oo Character. NAME=VALUE. (starting with GDAL 2.0) Dataset open option (format specific)
 #' @param sd_index Numeric. If the file is an HDF4 or HDF5 file, which subdataset should be returned (1 to the number of subdatasets)?  If this flag is used, src_dataset should be the filename of the multipart file.  This parameter only works if the subdataset names follow the SUBDATASET_n_NAME convention.
+#' @param config Character. Sets runtime configuration options for GDAL.  See https://trac.osgeo.org/gdal/wiki/ConfigOptions for more information.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
 #' @param ignore.full_scan Logical. If FALSE, perform a brute-force scan if other installs are not found.  Default is TRUE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
@@ -98,6 +99,7 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 		a_srs,a_ullr,a_nodata,mo,co,gcp,q,sds,stats,norat,oo,
 #		additional_commands,
 		sd_index,
+		config,
 		output_Raster=FALSE,
 		ignore.full_scan=TRUE,
 		verbose=FALSE,
@@ -121,17 +123,27 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 		parameter_values$src_dataset <- get_subdatasets(src_dataset,names_only=TRUE)[sd_index]
 	}
 	
+	# GCP FIX, IDd by Stuart Allen 30 May 2016
+	if(!missing(gcp))
+	{
+		if(is.matrix(gcp))
+		{
+			parameter_values$gcp <- apply(X=gcp,FUN=function(x) return(paste(as.character(x),collapse=" ")),MARGIN=1)
+			# browser()
+		}
+	}
+	
 	parameter_variables <- list(
 			logical = list(
 					varnames <- c("strict","unscale","epo","eco","q","sds","stats","norat")),
 			vector = list(
-					varnames <- c("outsize","tr","scale","exponent","srcwin","projwin","a_ullr","gcp")),
+					varnames <- c("outsize","tr","scale","exponent","srcwin","projwin","a_ullr")),
 			scalar = list(
 					varnames <- c("a_nodata")),
 			character = list(
-					varnames <- c("ot","of","mask","expand","r","projwin_srs","a_srs","oo","src_dataset","dst_dataset")),
+					varnames <- c("ot","of","mask","expand","r","projwin_srs","a_srs","oo","src_dataset","dst_dataset","gcp")),
 			repeatable = list(
-					varnames <- c("b","mo","co")))
+					varnames <- c("b","mo","co","config","gcp")))
 	
 	parameter_order <- c(
 			"strict","exponent","unscale","epo","eco","q","sds","stats",
@@ -140,12 +152,14 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 			"a_nodata",
 			"ot","of","mask","expand","r","projwin_srs","a_srs",
 			"b","mo","co","oo",
-			"src_dataset","dst_dataset")
+			"src_dataset","dst_dataset","config")
 	
 	parameter_noflags <- c("src_dataset","dst_dataset")
 	
 	parameter_noquotes <- unlist(parameter_variables$vector)
-		
+	
+	parameter_doubledash <- c("config")
+	
 	executable <- "gdal_translate"
 	
 	cmd <- gdal_cmd_builder(
@@ -155,6 +169,7 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 			parameter_order=parameter_order,
 			parameter_noflags=parameter_noflags,
 			parameter_noquotes=parameter_noquotes,
+			parameter_doubledash=parameter_doubledash,
 			gdal_installation_id=gdal_chooseInstallation(hasDrivers=of))
 	
 	if(verbose) message(paste("GDAL command being used:",cmd))

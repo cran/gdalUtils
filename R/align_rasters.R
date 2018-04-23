@@ -13,6 +13,7 @@
 #' @param dstfile Character. The filename of the synchronized output file.
 #' @param output_Raster Logical. Return output dst_dataset as a RasterBrick?
 #' @param nThreads Numeric or Character. If numeric, the number of threads to use.  Setting to > 1 enables multithreaded execution.  Can also be "ALL_CPUS" to use all available CPUS. Default is 1.
+#' @param projres_only Logical.  Matches projection and pixel resolution only, but leaves the spatial extent unchanged.  Useful for mosaicking.  Default = FALSE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @param ... parameters to be passed to {\link{gdalwarp}} (e.g. resampling approach).
 #' @return Either NULL or a RasterBricks depending on whether output_Raster is set to TRUE.
@@ -23,6 +24,7 @@
 
 align_rasters <- function(unaligned,reference,dstfile,output_Raster=FALSE,
 		nThreads=1,
+		projres_only=FALSE,
 		verbose=FALSE,...)
 {
 	# Get projection from reference
@@ -60,8 +62,15 @@ align_rasters <- function(unaligned,reference,dstfile,output_Raster=FALSE,
 		}
 	}
 	
-	synced <- gdalwarp(srcfile=unaligned,dstfile=dstfile,te=te,t_srs=proj4_string,
-			ts=ts,output_Raster=output_Raster,multi=multi,wo=wo,verbose=verbose,...)
+	if(projres_only)
+	{
+		synced <- gdalwarp(srcfile=unaligned,dstfile=dstfile,t_srs=proj4_string,
+				output_Raster=output_Raster,multi=multi,wo=wo,verbose=verbose,...)
+	} else
+	{
+		synced <- gdalwarp(srcfile=unaligned,dstfile=dstfile,te=te,t_srs=proj4_string,
+				ts=ts,output_Raster=output_Raster,multi=multi,wo=wo,verbose=verbose,...)
+	}
 	return(synced)
 	
 }

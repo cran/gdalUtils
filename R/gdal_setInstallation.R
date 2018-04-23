@@ -366,6 +366,7 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 							### Mac
 							# Kyngchaos frameworks:
 							"/Library/Frameworks/GDAL.framework",
+#							"/Library/Frameworks/GDAL.framework/Programs",
 							# MacPorts:
 							"/opt/local/bin",
 							# Homebrew:

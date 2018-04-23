@@ -4,6 +4,7 @@
 #' 
 #' @param datasetname Character. Input HDF4/5 or NetCDF file.
 #' @param names_only Logical. Return subdataset names only?  Default=TRUE.
+#' @param normalizePath Logical. Normalize the file path?  Default=FALSE.
 #' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 
 #' @return character vector of subdataset names that can be used in gdal_translate.
@@ -27,11 +28,15 @@
 #' @importFrom utils glob2rx
 #' @export
 
-get_subdatasets <- function(datasetname,names_only=TRUE,verbose=FALSE)
+get_subdatasets <- function(datasetname,names_only=TRUE,normalizePath=FALSE,verbose=FALSE)
 {
 	if(verbose) message("Checking gdal_installation...")
 	gdal_setInstallation()
 	if(is.null(getOption("gdalUtils_gdalPath"))) return()
+	
+	if(normalizePath) {
+		datasetname <- normalizePath(datasetname)
+	}
 	
 	if(names_only)
 	{
@@ -42,6 +47,7 @@ get_subdatasets <- function(datasetname,names_only=TRUE,verbose=FALSE)
 					split1 <- strsplit(subdataset_rawnames[X],"=")
 					return(gsub("\"","",split1[[1]][2]))	
 				})
+	#	if(normalizePath) return(normalizePath(subdataset_names)) else return(subdataset_names)
 		return(subdataset_names)
 	}	
 }
