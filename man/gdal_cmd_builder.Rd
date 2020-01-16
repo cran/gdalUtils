@@ -4,10 +4,18 @@
 \alias{gdal_cmd_builder}
 \title{gdal_cmd_builder}
 \usage{
-gdal_cmd_builder(executable, parameter_variables = c(),
-  parameter_values = c(), parameter_order = c(), parameter_noflags = c(),
-  parameter_doubledash = c(), parameter_noquotes = c(),
-  gdal_installation_id = 1)
+gdal_cmd_builder(
+  executable,
+  parameter_variables = c(),
+  parameter_values = c(),
+  parameter_order = c(),
+  parameter_noflags = c(),
+  parameter_doubledash = c(),
+  parameter_noquotes = c(),
+  gdal_installation_id = 1,
+  python_util = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{executable}{Character. The GDAL command to use (e.g. "gdal_translate")}
@@ -25,6 +33,10 @@ gdal_cmd_builder(executable, parameter_variables = c(),
 \item{parameter_noquotes}{Character. Parameters which should not be wrapped in quotes (vector parameters only, at present).}
 
 \item{gdal_installation_id}{Numeric. The ID of the GDAL installation to use.  Defaults to 1.}
+
+\item{python_util}{Logical. Is the utility a python utility?  Default = FALSE.}
+
+\item{verbose}{Logical. Enable verbose execution? Default is FALSE.}
 }
 \value{
 Formatted GDAL command for use with system() calls.

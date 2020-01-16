@@ -4,11 +4,53 @@
 \alias{gdalwarp}
 \title{gdalwarp}
 \usage{
-gdalwarp(srcfile, dstfile, s_srs, t_srs, to, order, tps, rpc, geoloc, et,
-  refine_gcps, te, te_srs, tr, tap, ts, ovr, wo, ot, wt, r, srcnodata,
-  dstnodata, dstalpha, wm, multi, q, of = "GTiff", co, cutline, cl, cwhere,
-  csql, cblend, crop_to_cutline, overwrite, nomd, cvmd, setci, oo, doo,
-  output_Raster = FALSE, ignore.full_scan = TRUE, verbose = FALSE, ...)
+gdalwarp(
+  srcfile,
+  dstfile,
+  s_srs,
+  t_srs,
+  to,
+  order,
+  tps,
+  rpc,
+  geoloc,
+  et,
+  refine_gcps,
+  te,
+  te_srs,
+  tr,
+  tap,
+  ts,
+  ovr,
+  wo,
+  ot,
+  wt,
+  r,
+  srcnodata,
+  dstnodata,
+  dstalpha,
+  wm,
+  multi,
+  q,
+  of = "GTiff",
+  co,
+  cutline,
+  cl,
+  cwhere,
+  csql,
+  cblend,
+  crop_to_cutline,
+  overwrite,
+  nomd,
+  cvmd,
+  setci,
+  oo,
+  doo,
+  output_Raster = FALSE,
+  ignore.full_scan = TRUE,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{srcfile}{Character. The source file name(s).}
@@ -144,6 +186,7 @@ raster/rgdal supports the particular output format).
 # and that raster and rgdal are also installed.
 # Note this isn't strictly neccessary, as executing the function will
 # force a search for a valid GDAL install.
+outdir <- tempdir()
 gdal_setInstallation()
 valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
 if(require(raster) && require(rgdal) && valid_install)
@@ -152,7 +195,7 @@ if(require(raster) && require(rgdal) && valid_install)
 src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 # Command-line gdalwarp call:
 # gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
-gdalwarp(src_dataset,dstfile="tahoe_highrez_utm11.tif",
+gdalwarp(src_dataset,dstfile=file.path(outdir,"tahoe_highrez_utm11.tif"),
 		t_srs='+proj=utm +zone=11 +datum=WGS84',output_Raster=TRUE,
 		overwrite=TRUE,verbose=TRUE)
 }

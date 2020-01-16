@@ -238,7 +238,7 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 #				"^gdalsrsinfo$|^gdaldem\\.exe$",
 #				
 #				)
-	 	
+		
 		
 		checkValidity <- sapply(path,
 				function(x)
@@ -370,7 +370,9 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 							# MacPorts:
 							"/opt/local/bin",
 							# Homebrew:
-							"/usr/local/Cellar/gdal/"
+							"/usr/local/Cellar/gdal/",
+							# Anaconda3 default:
+							"/anaconda3/bin/"
 					)
 				}
 				
@@ -536,16 +538,16 @@ gdal_setInstallation <- function(search_path=NULL,rescan=FALSE,
 	}
 	
 # Sets the installation for this session.
-	if(is.null(getOption("gdalUtils_gdalPath")))
+	if(is.null(getOption("gdalUtils_gdalPath")) || rescan)
 	{
 		rescan=TRUE	
+		gdal_installation_out <- gdal_installation(search_path=search_path,rescan=rescan,ignore.full_scan=ignore.full_scan,
+				verbose=verbose)
+		options(gdalUtils_gdalPath=gdal_installation_out)
 	}
-	gdal_installation_out <- gdal_installation(search_path=search_path,rescan=rescan,ignore.full_scan=ignore.full_scan,
-			verbose=verbose)
-	options(gdalUtils_gdalPath=gdal_installation_out)
 	if(is.null(getOption("gdalUtils_gdalPath")))
 	{
-		warning("No GDAL installation found. Please install 'gdal' before continuing:\n\t- www.gdal.org (no HDF4 support!)\n\t- www.trac.osgeo.org/osgeo4w/ (with HDF4 support RECOMMENDED)\n\t- www.fwtools.maptools.org (with HDF4 support)\n") # why not stop?
+		warning("No GDAL installation found. Please install 'gdal' before continuing:\n\t- www.gdal.org (no HDF4 support!)\n\t- trac.osgeo.org/osgeo4w/ (with HDF4 support RECOMMENDED)\n\t- www.fwtools.maptools.org (with HDF4 support)\n") # why not stop?
 		if(ignore.full_scan) warning("If you think GDAL is installed, please run:\ngdal_setInstallation(ignore.full_scan=FALSE)")
 	}
 	else

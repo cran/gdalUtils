@@ -4,10 +4,19 @@
 \alias{mosaic_rasters}
 \title{Mosaic raster files using GDAL Utilities}
 \usage{
-mosaic_rasters(gdalfile, dst_dataset, output.vrt = NULL,
-  output_Raster = FALSE, separate = FALSE, trim_margins = NULL,
-  gdalwarp_index = 1, gdalwarp_params = list(r = "near"), force_ot = NULL,
-  verbose = FALSE, ...)
+mosaic_rasters(
+  gdalfile,
+  dst_dataset,
+  output.vrt = NULL,
+  output_Raster = FALSE,
+  separate = FALSE,
+  trim_margins = NULL,
+  gdalwarp_index = 1,
+  gdalwarp_params = list(r = "near"),
+  force_ot = NULL,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{gdalfile}{Character. Input files (as a character vector) or a wildcard search term (e.g. "*.tif")}
@@ -50,14 +59,15 @@ needed.
 # and that raster and rgdal are also installed.
 # Note this isn't strictly neccessary, as executing the function will
 # force a search for a valid GDAL install.
+outdir <- tempdir()
 gdal_setInstallation()
 valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
 if(require(raster) && require(rgdal) && valid_install)
 {
 layer1 <- system.file("external/tahoe_lidar_bareearth.tif", package="gdalUtils")
 layer2 <- system.file("external/tahoe_lidar_highesthit.tif", package="gdalUtils")
-mosaic_rasters(gdalfile=c(layer1,layer2),dst_dataset="test_mosaic.envi",separate=TRUE,of="ENVI",
-		verbose=TRUE)
+mosaic_rasters(gdalfile=c(layer1,layer2),dst_dataset=file.path(outdir,"test_mosaic.envi"),
+		separate=TRUE,of="ENVI",verbose=TRUE)
 gdalinfo("test_mosaic.envi")
 }
 }

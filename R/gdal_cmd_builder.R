@@ -10,7 +10,8 @@
 #' @param parameter_doubledash Character. Parameters which should have a double dash "--".
 #' @param parameter_noquotes Character. Parameters which should not be wrapped in quotes (vector parameters only, at present).
 #' @param gdal_installation_id Numeric. The ID of the GDAL installation to use.  Defaults to 1.
-#' 
+#' @param python_util Logical. Is the utility a python utility?  Default = FALSE.
+#' @param verbose Logical. Enable verbose execution? Default is FALSE.  
 #' @return Formatted GDAL command for use with system() calls. 
 #' @author Jonathan A. Greenberg (\email{gdalUtils@@estarcion.net})
 #' 
@@ -90,19 +91,31 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		parameter_values=c(),parameter_order=c(),parameter_noflags=c(),
 		parameter_doubledash=c(),
 		parameter_noquotes=c(),
-		gdal_installation_id=1)
+		gdal_installation_id=1,
+		python_util=FALSE,
+		verbose=FALSE)
 {
+	if(verbose) message("Checking installation...")
 	# path to executable check in here?
-	
 	gdal_setInstallation()
 	if(is.null(getOption("gdalUtils_gdalPath"))) return()
 	
 	executable <- normalizePath(list.files(
 					getOption("gdalUtils_gdalPath")[[gdal_installation_id]]$path,
 					executable,full.names=TRUE))
+
+	if(!file.exists(executable) && !file.exists(paste0(executable,".exe")))
+	{
+		stop(paste0(executable," does not exist on your system.  Please check your installation."))
+	}
 	
 	parameter_variables_types <- names(parameter_variables)
-	defined_variables <- names(parameter_values)[sapply(parameter_values,function(X) class(X) != "name")]
+
+	# print(sapply(parameter_values,function(X) class(X)))
+	
+	defined_variables <- names(parameter_values)[sapply(parameter_values,function(X) class(X)[1] != "name")]
+	
+	if(verbose) message("Setting up logical variables...")
 	
 	if(any("logical" %in% parameter_variables_types))
 	{
@@ -153,6 +166,8 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		
 	}
 	
+	if(verbose) message("Setting up vector variables...")
+	
 	if(any("vector" %in% parameter_variables_types))
 	{
 		parameter_variables_vector <- parameter_variables$vector[[1]]
@@ -198,6 +213,8 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		parameter_variables_vector_strings <- NULL
 	}
 	
+	if(verbose) message("Setting up scalar variables...")
+	
 	if(any("scalar" %in% parameter_variables_types))
 	{
 		parameter_variables_scalar <- parameter_variables$scalar[[1]]
@@ -233,6 +250,8 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 	{
 		parameter_variables_scalar_strings <- NULL
 	}
+	
+	if(verbose) message("Setting up character variables...")
 	
 	if(any("character" %in% parameter_variables_types))
 	{
@@ -271,6 +290,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		parameter_variables_character_strings <- NULL
 	}
 	
+	if(verbose) message("Setting up repeatable variables...")
+	
+	
 	if(any("repeatable" %in% parameter_variables_types))
 	{
 		parameter_variables_repeatable <- parameter_variables$repeatable[[1]]
@@ -280,6 +302,8 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 			parameter_variables_repeatable_strings <- sapply(parameter_variables_repeatable_defined,
 					function(X,parameter_values,parameter_doubledash)
 					{
+#						if(X == "gcp") browser()
+						
 						if(X %in% parameter_noflags)
 						{
 							flag=NULL
@@ -293,12 +317,22 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 								flag=paste("-",X," ",sep="")
 							}
 						}
-						# browser()
-						parameter_variables_repeatable_string <- paste(
-								paste(flag,
-										qm(parameter_values[[which(names(parameter_values)==X)]]),
-										sep=""),
-								collapse=" ")
+						
+						if(X %in% parameter_noquotes)
+						{
+							parameter_variables_repeatable_string <- paste(
+									paste(flag,
+											(parameter_values[[which(names(parameter_values)==X)]]),
+											sep=""),
+									collapse=" ")			
+						} else
+						{	
+							parameter_variables_repeatable_string <- paste(
+									paste(flag,
+											qm(parameter_values[[which(names(parameter_values)==X)]]),
+											sep=""),
+									collapse=" ")
+						}
 						return(parameter_variables_repeatable_string)
 					},parameter_values=parameter_values,parameter_doubledash=parameter_doubledash)			
 		} else
@@ -309,6 +343,9 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 	{
 		parameter_variables_repeatable_strings <- NULL
 	}
+	
+	if(verbose) message("Setting up noflag variables...")
+	
 	
 	if(!is.null(parameter_noflags))
 	{
@@ -333,7 +370,8 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 		parameter_variables_noflag_strings <- NULL	
 	}
 	
-#	browser()
+	if(verbose) message("Putting them all together...")
+	
 	
 	parameter_vector <- c(
 			parameter_variables_logical_strings,
@@ -353,8 +391,15 @@ gdal_cmd_builder <- function(executable,parameter_variables=c(),
 	
 	# Collapse multiple parameter entries:
 	parameter_vector <- sapply(parameter_vector,function(x) paste(x,collapse=" "))
-	
+
 	cmd <- paste(c(qm(executable),parameter_vector),collapse=" ")
+	
+#	if(python_util)
+#	{
+#		py_check <- py_available(initialize=T)
+#		if(!py_check) stop("Python not available, please fix.")
+#		cmd <- paste(py_config()$python,cmd)
+#	}
 	
 	return(cmd)
 	

@@ -63,6 +63,7 @@
 #' # and that raster and rgdal are also installed.
 #' # Note this isn't strictly neccessary, as executing the function will
 #' # force a search for a valid GDAL install.
+#' outdir <- tempdir()
 #' gdal_setInstallation()
 #' valid_install <- !is.null(getOption("gdalUtils_gdalPath"))
 #' if(require(raster) && require(rgdal) && valid_install)
@@ -71,18 +72,19 @@
 #' src_dataset <- system.file("external/tahoe_highrez.tif", package="gdalUtils")
 #' # Original gdal_translate call:
 #' # gdal_translate -of GTiff -co "TILED=YES" tahoe_highrez.tif tahoe_highrez_tiled.tif
-#' gdal_translate(src_dataset,"tahoe_highrez_tiled.tif",of="GTiff",co="TILED=YES",verbose=TRUE)
+#' gdal_translate(src_dataset,file.path(outdir,"tahoe_highrez_tiled.tif"),of="GTiff",
+#' 		co="TILED=YES",verbose=TRUE)
 #' # Pull out a chunk and return as a raster:
-#' gdal_translate(src_dataset,"tahoe_highrez_tiled.tif",of="GTiff",
+#' gdal_translate(src_dataset,file.path(outdir,"tahoe_highrez_tiled.tif"),of="GTiff",
 #' srcwin=c(1,1,100,100),output_Raster=TRUE,verbose=TRUE)
 #' # Notice this is the equivalent, but follows gdal_translate's parameter format:
-#' gdal_translate(src_dataset,"tahoe_highrez_tiled.tif",of="GTiff",
+#' gdal_translate(src_dataset,file.path(outdir,"tahoe_highrez_tiled.tif"),of="GTiff",
 #' srcwin="1 1 100 100",output_Raster=TRUE,verbose=TRUE)
 #' }
 #' \dontrun{ 
 #' # Extract the first subdataset from an HDF4 file:
 #' hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
-#' gdal_translate(hdf4_dataset,"test_modis_sd1.tif",sd_index=1)
+#' gdal_translate(hdf4_dataset,file.path(outdir,"test_modis_sd1.tif"),sd_index=1)
 #' }
 #' @import rgdal
 #' @export
@@ -124,12 +126,19 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 	}
 	
 	# GCP FIX, IDd by Stuart Allen 30 May 2016
+	# New fixes suggested by Barry Rowlingson, 22 November 2019
 	if(!missing(gcp))
 	{
+		if(is.data.frame(gcp))
+			parameter_values$gcp <- as.matrix(parameter_values$gcp)
+		
 		if(is.matrix(gcp))
 		{
 			parameter_values$gcp <- apply(X=gcp,FUN=function(x) return(paste(as.character(x),collapse=" ")),MARGIN=1)
 			# browser()
+		} else
+		{
+			parameter_values$gcp <- paste(as.character(parameter_values$gcp),collapse=" ")
 		}
 	}
 	
@@ -137,13 +146,13 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 			logical = list(
 					varnames <- c("strict","unscale","epo","eco","q","sds","stats","norat")),
 			vector = list(
-					varnames <- c("outsize","tr","scale","exponent","srcwin","projwin","a_ullr")),
+					varnames <- c("outsize","tr","exponent","srcwin","projwin","a_ullr")),
 			scalar = list(
 					varnames <- c("a_nodata")),
 			character = list(
-					varnames <- c("ot","of","mask","expand","r","projwin_srs","a_srs","oo","src_dataset","dst_dataset","gcp")),
+					varnames <- c("ot","of","mask","expand","r","projwin_srs","a_srs","oo","src_dataset","dst_dataset")),
 			repeatable = list(
-					varnames <- c("b","mo","co","config","gcp")))
+					varnames <- c("b","mo","co","config","gcp","scale")))
 	
 	parameter_order <- c(
 			"strict","exponent","unscale","epo","eco","q","sds","stats",
@@ -156,12 +165,12 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 	
 	parameter_noflags <- c("src_dataset","dst_dataset")
 	
-	parameter_noquotes <- unlist(parameter_variables$vector)
+	parameter_noquotes <- c(unlist(parameter_variables$vector),"gcp","scale")
 	
 	parameter_doubledash <- c("config")
 	
 	executable <- "gdal_translate"
-	
+#	browser()
 	cmd <- gdal_cmd_builder(
 			executable=executable,
 			parameter_variables=parameter_variables,

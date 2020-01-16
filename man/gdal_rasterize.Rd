@@ -4,9 +4,35 @@
 \alias{gdal_rasterize}
 \title{gdal_rasterize}
 \usage{
-gdal_rasterize(src_datasource, dst_filename, b, i, at, burn, a, threeD, l,
-  where, sql, dialect, of, a_srs, co, a_nodata, init, te, tr, tap, ts, ot, q,
-  output_Raster = FALSE, ignore.full_scan = TRUE, verbose = FALSE)
+gdal_rasterize(
+  src_datasource,
+  dst_filename,
+  b,
+  i,
+  at,
+  burn,
+  a,
+  threeD,
+  add,
+  l,
+  where,
+  sql,
+  dialect,
+  of,
+  a_srs,
+  co,
+  a_nodata,
+  init,
+  te,
+  tr,
+  tap,
+  ts,
+  ot,
+  q,
+  output_Raster = FALSE,
+  ignore.full_scan = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{src_datasource}{Character. Any OGR supported readable datasource.}
@@ -24,6 +50,8 @@ gdal_rasterize(src_datasource, dst_filename, b, i, at, burn, a, threeD, l,
 \item{a}{Character. Identifies an attribute field on the features to be used for a burn in value. The value will be burned into all output bands.}
 
 \item{threeD}{Logical. (GDAL parameter '3d') Indicates that a burn value should be extracted from the "Z" values of the feature. These values are adjusted by the burn value given by "-burn value" or "-a attribute_name" if provided. As of now, only points and lines are drawn in 3D.}
+
+\item{add}{Logical. Instead of burning a new value, this adds the new value to the existing raster. Suitable for heatmaps for instance.}
 
 \item{l}{Character. Indicates the layer(s) from the datasource that will be used for input features. May be specified multiple times, but at least one layer name or a -sql option must be specified.}
 

@@ -10,6 +10,7 @@
 #' @param burn Numeric. A fixed value to burn into a band for all objects. A vector of burn options can be supplied, one per band being written to.
 #' @param a Character. Identifies an attribute field on the features to be used for a burn in value. The value will be burned into all output bands.
 #' @param threeD Logical. (GDAL parameter '3d') Indicates that a burn value should be extracted from the "Z" values of the feature. These values are adjusted by the burn value given by "-burn value" or "-a attribute_name" if provided. As of now, only points and lines are drawn in 3D. 
+#' @param add Logical. Instead of burning a new value, this adds the new value to the existing raster. Suitable for heatmaps for instance.
 #' @param l Character. Indicates the layer(s) from the datasource that will be used for input features. May be specified multiple times, but at least one layer name or a -sql option must be specified.
 #' @param where Character. An optional SQL WHERE style query expression to be applied to select features to burn in from the input layer(s).
 #' @param sql Character. An SQL statement to be evaluated against the datasource to produce a virtual layer of features to be burned in.
@@ -76,7 +77,7 @@
 
 gdal_rasterize <- function(
 		src_datasource,dst_filename,
-		b,i,at,burn,a,threeD,l,where,sql,dialect,
+		b,i,at,burn,a,threeD,add,l,where,sql,dialect,
 		of,a_srs,co,a_nodata,init,
 		te,tr,tap,ts,ot,q,
 #		additional_commands,
@@ -100,7 +101,7 @@ gdal_rasterize <- function(
 	parameter_variables <- list(
 			logical = list(
 					varnames <- c(
-							"i","at","threeD","tap","q"
+							"i","at","threeD","add","tap","q"
 					)),
 			vector = list(
 					varnames <- c(
@@ -122,7 +123,7 @@ gdal_rasterize <- function(
 	)
 	
 	parameter_order <- c(
-			"b","i","at","burn","a","threeD","l",
+			"b","i","at","burn","a","threeD","add","l",
 			"where","sql","dialect",
 			"of","a_srs","co","a_nodata","init",
 			"te","tr","tap","ts","ot","q",
