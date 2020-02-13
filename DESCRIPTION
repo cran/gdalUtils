@@ -8,7 +8,7 @@ LazyLoad: yes
 Author: Jonathan Asher Greenberg and Matteo Mattiuzzi
 Description: Wrappers for the Geospatial Data Abstraction Library (GDAL)
     Utilities.
-Version: 2.0.3
+Version: 2.0.3.2
 Date: 2020-01-15
 Depends: R (>= 2.14.0)
 Imports: sp, foreach, R.utils, raster, rgdal
@@ -17,6 +17,6 @@ BugReports: https://github.com/gearslaboratory/gdalUtils/issues
 Encoding: UTF-8
 RoxygenNote: 7.0.2
 NeedsCompilation: no
-Packaged: 2020-01-16 04:23:32 UTC; root
+Packaged: 2020-02-13 19:26:42 UTC; root
 Repository: CRAN
-Date/Publication: 2020-01-16 15:20:13 UTC
+Date/Publication: 2020-02-13 20:10:02 UTC

@@ -1,4 +1,4 @@
-b41b2205c0895e3e6edc2da266d4a1ef *DESCRIPTION
+d8bd6148b7a9dd0ec16c352fcb30fc74 *DESCRIPTION
 40932bac39d7ca778a6e5b3a8680ed2a *NAMESPACE
 2a2cb6f363ce7f005b6470c5fc5c67ec *R/align_rasters.R
 f19286cf5bc31a0f0d91a4161b466ef6 *R/batch_gdal_translate.R
@@ -8,7 +8,7 @@ f19286cf5bc31a0f0d91a4161b466ef6 *R/batch_gdal_translate.R
 02baa0bf95af346704f6e09badea5449 *R/gdal_grid.R
 44531e76817eead157a9d0681a436d8c *R/gdal_rasterize.R
 6a0b05a48f05c9a79bb618a52788c055 *R/gdal_setInstallation.R
-a69a19a59b3be5ba2f79ceb9ff5eb08a *R/gdal_translate.R
+e34b0eed8d4245adc27d12d0edb4d1e4 *R/gdal_translate.R
 c0a9c56753324ad1da82a2084d63d5af *R/gdaladdo.R
 b415a917d0bda460e7a32af620e8270f *R/gdalbuildvrt.R
 48610dddbdb0f84d3adef24f1b1fb59b *R/gdaldem.R
@@ -21,7 +21,7 @@ b88a9ab740c4589a72c2750c6aa43258 *R/gdaltindex.R
 9744295129711a13c78c7d7260d7a6f5 *R/gdalwarp.R
 3e7619bedcafc137ed0f43ed37603a12 *R/get_subdatasets.R
 dd09f72dae19b017003620b5cfe0dffe *R/is.Raster.R
-8dcd342bf7f964cb6a0dd75478837e59 *R/mosaic_rasters.R
+0e04c5df34bdd32654322c56a533b87b *R/mosaic_rasters.R
 c2de58d41e516ee4c88d5b515936f64c *R/nearblack.R
 96e624aa0481088c45d7d3cac737cc9f *R/ogr2ogr.R
 7992a499fad16529a1dfef295c681159 *R/ogrinfo.R
@@ -55,7 +55,7 @@ acd7eae8e1c712b99fe82ffa3d4711e7 *man/align_rasters.Rd
 4034a356ee74964e28c8d0200c502c7a *man/gdal_grid.Rd
 a5f109696abc7b4370548936fafbf365 *man/gdal_rasterize.Rd
 0eedb2b0cc56bee71089e0dfadb6319e *man/gdal_setInstallation.Rd
-278778fed9276e7bdb5aac0d490b4b9a *man/gdal_translate.Rd
+ccf1ef3a9e9ff1e088cfbfde396a177b *man/gdal_translate.Rd
 f0935fa47d9e9a0395d0dc507f04a648 *man/gdaladdo.Rd
 4a47b2979f2d9b176f3ac8e959acc5f8 *man/gdalbuildvrt.Rd
 d12796dce17dcb81638dafe12cbab708 *man/gdaldem.Rd
